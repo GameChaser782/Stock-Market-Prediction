@@ -1,43 +1,36 @@
 # Portfolio Analyzer
 
-AI-powered portfolio analysis tool with real-time stock data.
+AI-powered portfolio analysis tool. Try it live: **https://gamechaser782.github.io/Portfolio-Analyser/**
 
 ## Features
-- **@ Mention Stocks**: Type `@AAPL` to add stocks inline
-- **Real-time Data**: Fetches prices via yfinance (US + Indian stocks)
-- **Portfolio Total**: Live calculation of portfolio value
+- **@ Mention Stocks**: Type `@AAPL` or `@reliance` to add stocks
+- **Multi-Currency**: ₹ for Indian stocks, $ for US stocks
 - **AI Analysis**: Get a 1-100 score with detailed reasoning
+- **No Backend Required**: Runs entirely in the browser
 
-## Setup
+## How to Use
+1. Visit the live site or open `index.html` locally
+2. Get a free Gemini API key at [ai.google.dev](https://ai.google.dev)
+3. Enter your API key (stored only in your browser session)
+4. Type `@` to search for stocks
+5. Click "Analyze Portfolio"
 
-1. Install dependencies:
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
+## Supported Stocks
+- **US**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, NFLX
+- **India**: RELIANCE, TCS, INFY, HDFCBANK, MARUTI, BHARTIARTL, ICICIBANK, SBIN, etc.
 
-2. Run the server:
-   ```bash
-   cd backend
-   python server.py
-   ```
-
-3. Open http://localhost:5000
-
-4. Enter your Gemini API key in the input field
+## GitHub Pages Setup
+1. Push this repo to GitHub
+2. Go to Settings → Pages
+3. Set Source to "Deploy from a branch"
+4. Select `main` branch and `/ (root)` folder
+5. Save and wait for deployment
 
 ## Files
-- `backend/server.py` - Flask server with stock and analysis endpoints
-- `backend/config.yaml` - Model and prompt configuration
-- `backend/static/` - CSS and JavaScript
-- `backend/templates/` - HTML template
+- `index.html` - Complete app (for GitHub Pages)
+- `backend/` - Flask server version (for local development)
 
-## API Key
-The API key is:
-- Entered by the user in the browser
-- Stored only in the browser's session storage
-- Sent via `X-API-Key` header (not stored on server)
-- Falls back to `.env` file for local development
-
-## Supported Tickers
-- US stocks: AAPL, MSFT, GOOGL, etc.
-- Indian stocks: MARUTI, BHARTIARTL, etc. (auto-appends .NS/.BO)
+## Privacy
+- Your API key is stored only in your browser's session storage
+- Keys are never sent to any server except Google's Gemini API
+- No data is collected or stored

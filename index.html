@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analyzer</title>
+    <meta name="description" content="AI-Powered Investment Portfolio Analysis">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --card-bg: rgba(20, 20, 30, 0.7);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #667eea;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 10% 20%, rgba(100, 50, 200, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(50, 100, 200, 0.1) 0%, transparent 20%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-key-section {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .api-key-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            color: var(--text-main);
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .api-key-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .api-status {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .api-status.connected {
+            background: rgba(56, 239, 125, 0.2);
+            color: #38ef7d;
+        }
+
+        .api-status.disconnected {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .main-input {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .main-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .main-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-popup {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 25, 0.98);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-popup.active {
+            display: block;
+        }
+
+        .search-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .search-item:hover,
+        .search-item.selected {
+            background: rgba(102, 126, 234, 0.25);
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-ticker {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .search-name {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-left: 0.75rem;
+        }
+
+        .search-loading {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .portfolio-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .portfolio-total {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #38ef7d;
+        }
+
+        .portfolio-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .stock-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .stock-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.9rem;
+            animation: chipIn 0.2s ease;
+        }
+
+        @keyframes chipIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .chip-ticker {
+            font-weight: 600;
+        }
+
+        .chip-price {
+            color: #38ef7d;
+            font-size: 0.85rem;
+        }
+
+        .chip-qty {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .chip-qty button {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .chip-qty button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--accent);
+        }
+
+        .chip-qty-value {
+            min-width: 24px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .chip-remove {
+            background: transparent;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.6;
+            margin-left: 0.2rem;
+            transition: opacity 0.15s;
+        }
+
+        .chip-remove:hover {
+            opacity: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .analyze-btn {
+            flex: 1;
+            background: var(--success-gradient);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(56, 239, 125, 0.2);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .result-card {
+            display: none;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-label {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .details-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+
+        .details-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .reasoning {
+            display: none;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            line-height: 1.6;
+            color: #d1d1d1;
+            white-space: pre-wrap;
+        }
+
+        .loader {
+            display: none;
+            margin: 2rem auto;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hint {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Portfolio Analyzer</h1>
+            <div class="subtitle">AI-Powered Investment Insights</div>
+        </header>
+
+        <div class="card">
+            <div class="api-key-section">
+                <input type="password" id="apiKeyInput" class="api-key-input"
+                    placeholder="Enter your Gemini API Key (get one at ai.google.dev)">
+                <div id="apiStatus" class="api-status disconnected">○ Enter Key</div>
+            </div>
+
+            <div class="input-container">
+                <textarea id="mainInput" class="main-input" placeholder="Enter your analysis request. Use @TICKER to add stocks.
+
+Example: Analyze my portfolio for long-term growth. @AAPL @MARUTI.NS @TCS.NS
+
+Type @ and start typing for suggestions (e.g., @airtel, @reliance)"></textarea>
+                <div id="searchPopup" class="search-popup"></div>
+            </div>
+            <div class="hint">Type @ for stock suggestions • Arrow keys to navigate • Enter to select</div>
+
+            <div class="portfolio-summary">
+                <div>
+                    <div class="portfolio-label">Portfolio Value</div>
+                    <div id="portfolioTotal" class="portfolio-total">$0.00</div>
+                </div>
+                <div class="portfolio-label" id="stockCount">0 stocks</div>
+            </div>
+
+            <div id="stockChips" class="stock-chips"></div>
+
+            <div class="btn-group">
+                <button id="analyzeBtn" class="analyze-btn">Analyze Portfolio</button>
+                <button id="clearBtn" class="clear-btn">Clear</button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="resultCard" class="card result-card">
+            <div class="score-label">Portfolio Score</div>
+            <div id="scoreDisplay" class="score-display">--</div>
+            <button id="detailsToggle" class="details-toggle">Show Reasoning</button>
+            <div id="reasoning" class="reasoning"></div>
+        </div>
+
+        <div class="footer">
+            Get your free API key at <a href="https://ai.google.dev" target="_blank">ai.google.dev</a> • Your key stays
+            in your browser only
+        </div>
+    </div>
+
+    <script>
+        const POPULAR_STOCKS = [
+            { ticker: 'AAPL', name: 'Apple Inc.', price: 178.50, currency: 'USD' },
+            { ticker: 'MSFT', name: 'Microsoft Corporation', price: 378.90, currency: 'USD' },
+            { ticker: 'GOOGL', name: 'Alphabet Inc.', price: 141.80, currency: 'USD' },
+            { ticker: 'AMZN', name: 'Amazon.com Inc.', price: 178.25, currency: 'USD' },
+            { ticker: 'TSLA', name: 'Tesla Inc.', price: 248.50, currency: 'USD' },
+            { ticker: 'META', name: 'Meta Platforms Inc.', price: 474.30, currency: 'USD' },
+            { ticker: 'NVDA', name: 'NVIDIA Corporation', price: 682.50, currency: 'USD' },
+            { ticker: 'NFLX', name: 'Netflix Inc.', price: 545.20, currency: 'USD' },
+            { ticker: 'MARUTI.NS', name: 'Maruti Suzuki India', price: 14199, currency: 'INR' },
+            { ticker: 'BHARTIARTL.NS', name: 'Bharti Airtel Limited', price: 1949, currency: 'INR' },
+            { ticker: 'RELIANCE.NS', name: 'Reliance Industries', price: 2890, currency: 'INR' },
+            { ticker: 'TCS.NS', name: 'Tata Consultancy Services', price: 4250, currency: 'INR' },
+            { ticker: 'INFY.NS', name: 'Infosys Limited', price: 1820, currency: 'INR' },
+            { ticker: 'HDFCBANK.NS', name: 'HDFC Bank Limited', price: 1685, currency: 'INR' },
+            { ticker: 'ICICIBANK.NS', name: 'ICICI Bank Limited', price: 1245, currency: 'INR' },
+            { ticker: 'WIPRO.NS', name: 'Wipro Limited', price: 485, currency: 'INR' },
+            { ticker: 'SBIN.NS', name: 'State Bank of India', price: 825, currency: 'INR' },
+            { ticker: 'TATAMOTORS.NS', name: 'Tata Motors Limited', price: 765, currency: 'INR' },
+            { ticker: 'TATASTEEL.NS', name: 'Tata Steel Limited', price: 142, currency: 'INR' },
+            { ticker: 'ITC.NS', name: 'ITC Limited', price: 465, currency: 'INR' },
+            { ticker: 'HINDUNILVR.NS', name: 'Hindustan Unilever', price: 2380, currency: 'INR' },
+            { ticker: 'BAJFINANCE.NS', name: 'Bajaj Finance', price: 7450, currency: 'INR' },
+            { ticker: 'KOTAKBANK.NS', name: 'Kotak Mahindra Bank', price: 1780, currency: 'INR' },
+            { ticker: 'LT.NS', name: 'Larsen & Toubro', price: 3650, currency: 'INR' },
+            { ticker: 'ADANIENT.NS', name: 'Adani Enterprises', price: 2890, currency: 'INR' },
+            { ticker: 'AIRTEL', name: 'Bharti Airtel', alias: 'BHARTIARTL.NS', price: 1949, currency: 'INR' },
+        ];
+
+        const CURRENCY_SYMBOLS = { USD: '$', INR: '₹', EUR: '€', GBP: '£', JPY: '¥' };
+        let portfolio = [];
+        let apiKey = '';
+
+        function getCurrencySymbol(c) { return CURRENCY_SYMBOLS[c] || c + ' '; }
+
+        function init() {
+            document.getElementById('mainInput').addEventListener('input', handleInput);
+            document.getElementById('mainInput').addEventListener('keydown', handleKeydown);
+            document.getElementById('analyzeBtn').addEventListener('click', analyzePortfolio);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            document.getElementById('detailsToggle').addEventListener('click', toggleDetails);
+            document.getElementById('apiKeyInput').addEventListener('input', handleApiKeyChange);
+
+            const savedKey = sessionStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                apiKey = savedKey;
+                document.getElementById('apiKeyInput').value = savedKey;
+                updateApiStatus(true);
+            }
+        }
+
+        function handleApiKeyChange(e) {
+            apiKey = e.target.value.trim();
+            if (apiKey) {
+                sessionStorage.setItem('gemini_api_key', apiKey);
+                updateApiStatus(true);
+            } else {
+                sessionStorage.removeItem('gemini_api_key');
+                updateApiStatus(false);
+            }
+        }
+
+        function updateApiStatus(connected) {
+            const status = document.getElementById('apiStatus');
+            status.className = connected ? 'api-status connected' : 'api-status disconnected';
+            status.innerHTML = connected ? '● Ready' : '○ Enter Key';
+        }
+
+        function handleInput(e) {
+            const text = e.target.value;
+            const cursorPos = e.target.selectionStart;
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const atMatch = textBeforeCursor.match(/@(\w*)$/);
+
+            if (atMatch) {
+                showSearchResults(atMatch[1]);
+            } else {
+                hideSearchPopup();
+            }
+        }
+
+        function handleKeydown(e) {
+            const popup = document.getElementById('searchPopup');
+            if (!popup.classList.contains('active')) return;
+
+            const items = popup.querySelectorAll('.search-item[data-ticker]');
+            if (items.length === 0) return;
+
+            let current = popup.querySelector('.search-item.selected');
+            let idx = current ? Array.from(items).indexOf(current) : -1;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (current) current.classList.remove('selected');
+                idx = (idx + 1) % items.length;
+                items[idx].classList.add('selected');
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (current) current.classList.remove('selected');
+                idx = idx <= 0 ? items.length - 1 : idx - 1;
+                items[idx].classList.add('selected');
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                const selected = current || items[0];
+                if (selected) selectStock(selected.dataset.ticker);
+            } else if (e.key === 'Escape') {
+                hideSearchPopup();
+            }
+        }
+
+        function showSearchResults(query) {
+            const popup = document.getElementById('searchPopup');
+            const q = query.toLowerCase();
+
+            let matches = POPULAR_STOCKS.filter(s =>
+                s.ticker.toLowerCase().includes(q) ||
+                s.name.toLowerCase().includes(q) ||
+                (s.alias && s.alias.toLowerCase().includes(q))
+            );
+
+            if (matches.length === 0) {
+                popup.innerHTML = '<div class="search-loading">No matches found. Try: aapl, reliance, tcs</div>';
+            } else {
+                popup.innerHTML = matches.slice(0, 8).map((s, i) => `
+            <div class="search-item ${i === 0 ? 'selected' : ''}" data-ticker="${s.alias || s.ticker}">
+                <div>
+                    <span class="search-ticker">${s.ticker}</span>
+                    <span class="search-name">${s.name}</span>
+                </div>
+                <span style="color: #38ef7d;">${getCurrencySymbol(s.currency)}${s.price.toLocaleString()}</span>
+            </div>
+        `).join('');
+
+                popup.querySelectorAll('.search-item').forEach(item => {
+                    item.addEventListener('click', () => selectStock(item.dataset.ticker));
+                });
+            }
+            popup.classList.add('active');
+        }
+
+        function selectStock(ticker) {
+            hideSearchPopup();
+
+            const input = document.getElementById('mainInput');
+            const text = input.value;
+            const cursorPos = input.selectionStart;
+            const beforeCursor = text.substring(0, cursorPos);
+            const afterCursor = text.substring(cursorPos);
+            const newBefore = beforeCursor.replace(/@\w*$/, '');
+
+            input.value = newBefore + '[' + ticker + '] ' + afterCursor;
+            const newCursorPos = newBefore.length + ticker.length + 3;
+            input.setSelectionRange(newCursorPos, newCursorPos);
+            input.focus();
+
+            if (portfolio.some(s => s.ticker === ticker)) return;
+
+            const stockData = POPULAR_STOCKS.find(s => s.ticker === ticker || s.alias === ticker);
+            if (stockData) {
+                portfolio.push({
+                    ticker: stockData.alias || stockData.ticker,
+                    name: stockData.name,
+                    price: stockData.price,
+                    currency: stockData.currency,
+                    quantity: 1
+                });
+                renderChips();
+                updateTotal();
+            }
+        }
+
+        function hideSearchPopup() {
+            document.getElementById('searchPopup').classList.remove('active');
+        }
+
+        function renderChips() {
+            const container = document.getElementById('stockChips');
+            container.innerHTML = '';
+
+            portfolio.forEach((stock, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'stock-chip';
+                const sym = getCurrencySymbol(stock.currency);
+                chip.innerHTML = `
+            <span class="chip-ticker">${stock.ticker}</span>
+            <span class="chip-price">${sym}${stock.price.toLocaleString()}</span>
+            <div class="chip-qty">
+                <button class="qty-btn minus">−</button>
+                <span class="chip-qty-value">${stock.quantity}</span>
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="chip-remove">✕</button>
+        `;
+
+                chip.querySelector('.minus').addEventListener('click', () => {
+                    portfolio[idx].quantity = Math.max(1, portfolio[idx].quantity - 1);
+                    renderChips();
+                    updateTotal();
+                });
+
+                chip.querySelector('.plus').addEventListener('click', () => {
+                    portfolio[idx].quantity += 1;
+                    renderChips();
+                    updateTotal();
+                });
+
+                chip.querySelector('.chip-remove').addEventListener('click', () => {
+                    const ticker = portfolio[idx].ticker;
+                    portfolio.splice(idx, 1);
+                    removeFromInput(ticker);
+                    renderChips();
+                    updateTotal();
+                });
+
+                container.appendChild(chip);
+            });
+
+            document.getElementById('stockCount').textContent = portfolio.length + ' stock' + (portfolio.length !== 1 ? 's' : '');
+        }
+
+        function removeFromInput(ticker) {
+            const input = document.getElementById('mainInput');
+            input.value = input.value.replace(new RegExp('\\[' + ticker.replace('.', '\\.') + '\\]\\s*', 'g'), '');
+        }
+
+        function updateTotal() {
+            const byCurrency = {};
+            portfolio.forEach(s => {
+                const c = s.currency || 'USD';
+                byCurrency[c] = (byCurrency[c] || 0) + (s.price * s.quantity);
+            });
+            const currencies = Object.keys(byCurrency);
+            let text;
+            if (currencies.length === 0) {
+                text = '$0.00';
+            } else if (currencies.length === 1) {
+                const c = currencies[0];
+                text = getCurrencySymbol(c) + byCurrency[c].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                text = currencies.map(c => getCurrencySymbol(c) + byCurrency[c].toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })).join(' + ');
+            }
+            document.getElementById('portfolioTotal').textContent = text;
+        }
+
+        function clearAll() {
+            portfolio = [];
+            document.getElementById('mainInput').value = '';
+            document.getElementById('stockChips').innerHTML = '';
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('stockCount').textContent = '0 stocks';
+            updateTotal();
+        }
+
+        async function analyzePortfolio() {
+            const btn = document.getElementById('analyzeBtn');
+            const loader = document.getElementById('loader');
+            const resultCard = document.getElementById('resultCard');
+            const input = document.getElementById('mainInput');
+
+            if (portfolio.length === 0) {
+                alert('Add at least one stock using @TICKER');
+                return;
+            }
+
+            if (!apiKey) {
+                alert('Please enter your Gemini API key. Get one free at ai.google.dev');
+                document.getElementById('apiKeyInput').focus();
+                return;
+            }
+
+            const instructions = input.value.replace(/\[\w+\.?\w*\]/g, '').trim();
+            const portfolioStr = portfolio.map(s => `- ${s.ticker}: ${s.quantity} shares @ ${getCurrencySymbol(s.currency)}${s.price}`).join('\n');
+
+            const prompt = `Analyze this stock portfolio and provide an investment quality score.
+
+User Instructions:
+${instructions || 'Provide a general analysis.'}
+
+Portfolio:
+${portfolioStr}
+
+Instructions:
+- Evaluate diversification, risk, and growth potential.
+- Return ONLY a valid JSON object with no markdown or extra text.
+- Format: {"score": <integer 1-100>, "reasoning": "<detailed explanation>"}`;
+
+            btn.disabled = true;
+            btn.innerText = 'Analyzing...';
+            loader.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7 }
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    alert('API Error: ' + data.error.message);
+                    return;
+                }
+
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                let result;
+
+                try {
+                    const jsonMatch = text.match(/\{[\s\S]*"score"[\s\S]*"reasoning"[\s\S]*\}/);
+                    result = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(text);
+                } catch {
+                    const scoreMatch = text.match(/"score"\s*:\s*(\d+)/);
+                    const reasoningMatch = text.match(/"reasoning"\s*:\s*"([^"]+)"/);
+                    result = {
+                        score: scoreMatch ? parseInt(scoreMatch[1]) : 0,
+                        reasoning: reasoningMatch ? reasoningMatch[1] : text
+                    };
+                }
+
+                document.getElementById('scoreDisplay').innerText = result.score || '?';
+                document.getElementById('reasoning').innerText = result.reasoning || 'No reasoning provided.';
+                document.getElementById('reasoning').style.display = 'none';
+                document.getElementById('detailsToggle').innerText = 'Show Reasoning';
+                resultCard.style.display = 'block';
+            } catch (e) {
+                alert('Analysis failed: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Analyze Portfolio';
+                loader.style.display = 'none';
+            }
+        }
+
+        function toggleDetails() {
+            const reasoning = document.getElementById('reasoning');
+            const btn = document.getElementById('detailsToggle');
+            const visible = reasoning.style.display !== 'none';
+            reasoning.style.display = visible ? 'none' : 'block';
+            btn.innerText = visible ? 'Show Reasoning' : 'Hide Reasoning';
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
