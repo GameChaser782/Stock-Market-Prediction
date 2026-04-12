@@ -82,6 +82,11 @@ data/models/*.h5
 data/models/*.pkl
 data/vectorstore/
 
+# PortfolioIQ
+.portfolioiq/
+portfolioiq/ml/models/*.joblib
+portfolioiq/ml/data/
+
 # Temporary files
 tmp/
 temp/

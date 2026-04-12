@@ -1,0 +1,24 @@
+name: supervisor
+persona: supervisor_persona.md
+
+model:
+  provider: ollama
+  name: qwen3.5
+  temperature: 0.7
+
+tools:
+  - stock_lookup
+  - get_fundamentals
+  - get_earnings
+  - get_history
+  - calculate_indicators
+  - news_search
+
+memory:
+  long_term: true
+  dir: .portfolioiq
+  thread_ttl: 7200
+
+server:
+  host: "0.0.0.0"
+  port: 8000
