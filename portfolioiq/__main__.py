@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
+from pathlib import Path
 
 import click
 from dotenv import load_dotenv
@@ -57,9 +59,12 @@ def chat(provider, model, agent, thread, user):
 @click.option("--provider", default=None, help="LLM provider")
 @click.option("--model", default=None, help="Model name")
 @click.option("--agent", default="supervisor", help="Agent config to load")
-def serve(host, port, provider, model, agent):
+@click.option("--skip-frontend-build", is_flag=True, help="Skip rebuilding frontend/out before serving")
+def serve(host, port, provider, model, agent, skip_frontend_build):
     """Start the PortfolioIQ API server."""
     _apply_overrides(provider, model)
+    if not skip_frontend_build:
+        _build_frontend_export()
     from .agent import PortfolioAgent
     piq = PortfolioAgent(agent_name=agent)
     piq.serve(host=host, port=port)
@@ -207,6 +212,30 @@ def _apply_overrides(provider: str | None, model: str | None) -> None:
         os.environ["AGENT_PROVIDER"] = provider
     if model:
         os.environ["AGENT_MODEL"] = model
+
+
+def _build_frontend_export() -> None:
+    repo_root = Path(__file__).resolve().parent.parent
+    frontend_dir = repo_root / "frontend"
+
+    if not frontend_dir.exists():
+        click.echo("  Frontend directory not found, skipping frontend build.")
+        return
+
+    click.echo("\n  Building frontend export...")
+    cmd = ["npx", "next", "build", "--webpack"]
+    try:
+        subprocess.run(cmd, cwd=frontend_dir, check=True)
+        click.echo("  Frontend build complete.\n")
+    except FileNotFoundError as exc:
+        raise click.ClickException(
+            "Could not run frontend build. Make sure Node.js and npx are installed."
+        ) from exc
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(
+            f"Frontend build failed with exit code {exc.returncode}. "
+            "Fix the frontend build, or rerun with --skip-frontend-build."
+        ) from exc
 
 
 if __name__ == "__main__":

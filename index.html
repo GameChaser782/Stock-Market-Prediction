@@ -1,874 +1,831 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Analyzer</title>
-    <meta name="description" content="AI-Powered Investment Portfolio Analysis">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #0a0a0f;
-            --card-bg: rgba(20, 20, 30, 0.7);
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --accent: #667eea;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolioIQ — Multi-Agent Financial Advisor</title>
+  <meta name="description" content="AI agents that debate, analyze, and advise on your portfolio. Bull/bear stock debates, live news analysis, and ML predictions. One command to run.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    :root {
+      --bg: #0d0d1a;
+      --bg2: #13132b;
+      --border: rgba(255,255,255,0.08);
+      --violet: #7c3aed;
+      --violet-light: #8b5cf6;
+      --violet-dim: rgba(124,58,237,0.15);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dimmer: #64748b;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+    }
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 10% 20%, rgba(100, 50, 200, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(50, 100, 200, 0.1) 0%, transparent 20%);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
+    html { scroll-behavior: smooth; }
 
-        .container {
-            width: 100%;
-            max-width: 900px;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
 
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+    a { color: var(--violet-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
-        h1 {
-            font-size: 2.5rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
-        }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-        .subtitle {
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-        }
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,26,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #fff;
+      font-size: 1rem;
+    }
 
-        .api-key-section {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
+    .nav-brand svg { color: var(--violet-light); }
 
-        .api-key-input {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.6rem 1rem;
-            color: var(--text-main);
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
 
-        .api-key-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+    .nav-links a {
+      color: var(--muted);
+      font-size: 0.875rem;
+      transition: color 0.15s;
+    }
 
-        .api-key-input::placeholder {
-            color: var(--text-muted);
-        }
+    .nav-links a:hover { color: #fff; text-decoration: none; }
 
-        .api-status {
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            white-space: nowrap;
-        }
+    .nav-cta {
+      background: var(--violet);
+      color: #fff !important;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.15s !important;
+    }
 
-        .api-status.connected {
-            background: rgba(56, 239, 125, 0.2);
-            color: #38ef7d;
-        }
+    .nav-cta:hover { background: var(--violet-light) !important; text-decoration: none !important; }
 
-        .api-status.disconnected {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-        }
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
 
-        .input-container {
-            position: relative;
-        }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--violet-dim);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--violet-light);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
 
-        .main-input {
-            width: 100%;
-            min-height: 120px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-        }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 1.25rem;
+    }
 
-        .main-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+    h1 span { color: var(--violet-light); }
 
-        .main-input::placeholder {
-            color: var(--text-muted);
-        }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
 
-        .search-popup {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: rgba(15, 15, 25, 0.98);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-top: 0.5rem;
-            max-height: 250px;
-            overflow-y: auto;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
+    .hero-ctas {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-        .search-popup.active {
-            display: block;
-        }
+    .btn-primary {
+      background: var(--violet);
+      color: #fff;
+      padding: 0.65rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
 
-        .search-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.15s;
-        }
+    .btn-primary:hover { background: var(--violet-light); text-decoration: none; }
 
-        .search-item:hover,
-        .search-item.selected {
-            background: rgba(102, 126, 234, 0.25);
-        }
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.65rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
 
-        .search-item:last-child {
-            border-bottom: none;
-        }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); text-decoration: none; }
 
-        .search-ticker {
-            font-weight: 600;
-            color: var(--accent);
-        }
+    /* ── Terminal demo ── */
+    .terminal {
+      background: #090915;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 640px;
+      margin: 3rem auto 0;
+      text-align: left;
+    }
 
-        .search-name {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-left: 0.75rem;
-        }
+    .terminal-bar {
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
 
-        .search-loading {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 1rem;
-        }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f56; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #27c93f; }
 
-        .portfolio-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
+    .terminal-body { padding: 1.25rem 1.5rem; font-size: 0.85rem; line-height: 1.8; }
 
-        .portfolio-total {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #38ef7d;
-        }
+    .t-cmd { color: #a78bfa; }
+    .t-comment { color: var(--dimmer); }
+    .t-out { color: var(--muted); }
+    .t-ok { color: var(--green); }
 
-        .portfolio-label {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
+    /* ── Section wrapper ── */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
 
-        .stock-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
+    .section-label {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: var(--violet-light);
+      margin-bottom: 0.75rem;
+    }
 
-        .stock-chip {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid var(--accent);
-            border-radius: 20px;
-            padding: 0.5rem 0.9rem;
-            font-size: 0.9rem;
-            animation: chipIn 0.2s ease;
-        }
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
 
-        @keyframes chipIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+    }
 
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
 
-        .chip-ticker {
-            font-weight: 600;
-        }
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
 
-        .chip-price {
-            color: #38ef7d;
-            font-size: 0.85rem;
-        }
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
 
-        .chip-qty {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
+    .feature-card:hover { border-color: rgba(124,58,237,0.35); }
 
-        .chip-qty button {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            background: transparent;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-        }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
 
-        .chip-qty button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: var(--accent);
-        }
+    .feature-card h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; }
+    .feature-card p { font-size: 0.875rem; color: var(--muted); }
 
-        .chip-qty-value {
-            min-width: 24px;
-            text-align: center;
-            font-weight: 600;
-        }
+    /* ── Quickstart ── */
+    .steps { display: flex; flex-direction: column; gap: 1rem; }
 
-        .chip-remove {
-            background: transparent;
-            border: none;
-            color: #ff6b6b;
-            cursor: pointer;
-            font-size: 1.1rem;
-            opacity: 0.6;
-            margin-left: 0.2rem;
-            transition: opacity 0.15s;
-        }
+    .step {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
 
-        .chip-remove:hover {
-            opacity: 1;
-        }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--violet-dim);
+      border: 1px solid rgba(124,58,237,0.4);
+      color: var(--violet-light);
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+    }
 
-        .btn-group {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
-        }
+    .step-content h4 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.3rem; }
+    .step-content p { font-size: 0.875rem; color: var(--muted); }
 
-        .analyze-btn {
-            flex: 1;
-            background: var(--success-gradient);
-            border: none;
-            border-radius: 50px;
-            padding: 1rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+    .code-block {
+      background: #090915;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: #a78bfa;
+      overflow-x: auto;
+    }
 
-        .analyze-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(56, 239, 125, 0.2);
-        }
+    /* ── Agents ── */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
 
-        .analyze-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+    .agent-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
 
-        .clear-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 1rem 1.5rem;
-            font-size: 1rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .agent-card .agent-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
 
-        .clear-btn:hover {
-            border-color: #ff6b6b;
-            color: #ff6b6b;
-        }
+    .agent-card p { font-size: 0.8rem; color: var(--muted); }
 
-        .result-card {
-            display: none;
-            text-align: center;
-        }
+    .tag {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
 
-        .score-display {
-            font-size: 5rem;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .tag-bull { background: rgba(16,185,129,0.15); color: var(--green); }
+    .tag-bear { background: rgba(239,68,68,0.15); color: var(--red); }
+    .tag-mod { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .tag-sup { background: var(--violet-dim); color: var(--violet-light); }
 
-        .score-label {
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
+    /* ── API ── */
+    .api-table { width: 100%; border-collapse: collapse; }
+    .api-table th, .api-table td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+    .api-table th { color: var(--dimmer); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .api-table td { color: var(--text); }
+    .api-table tr:last-child td { border-bottom: none; }
+    .api-table code { color: #a78bfa; background: rgba(167,139,250,0.1); padding: 0.1rem 0.35rem; border-radius: 4px; }
 
-        .details-toggle {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            color: white;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: background 0.2s;
-        }
+    .method {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-        .details-toggle:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
+    .method-get { background: rgba(16,185,129,0.15); color: var(--green); }
+    .method-post { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .method-put { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .method-del { background: rgba(239,68,68,0.15); color: var(--red); }
 
-        .reasoning {
-            display: none;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            line-height: 1.6;
-            color: #d1d1d1;
-            white-space: pre-wrap;
-        }
+    /* ── Directory ── */
+    .dir-tree {
+      background: #090915;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-size: 0.82rem;
+      line-height: 1.9;
+      overflow-x: auto;
+    }
 
-        .loader {
-            display: none;
-            margin: 2rem auto;
-        }
+    .dir-tree .dir { color: var(--violet-light); }
+    .dir-tree .file { color: var(--muted); }
+    .dir-tree .comment { color: var(--dimmer); }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+    /* ── Contributing ── */
+    .contrib-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
 
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+    .contrib-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
 
-        .hint {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-        }
+    .contrib-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; }
+    .contrib-card p { font-size: 0.85rem; color: var(--muted); }
 
-        .footer {
-            text-align: center;
-            margin-top: 2rem;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--dimmer);
+      font-size: 0.85rem;
+    }
 
-        .footer a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-    </style>
+    footer a { color: var(--muted); }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1.25rem 2.5rem; }
+      .section { padding: 3rem 1.25rem; }
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <header>
-            <h1>Portfolio Analyzer</h1>
-            <div class="subtitle">AI-Powered Investment Insights</div>
-        </header>
 
-        <div class="card">
-            <div class="api-key-section">
-                <input type="password" id="apiKeyInput" class="api-key-input"
-                    placeholder="Enter your Gemini API Key (get one at ai.google.dev)">
-                <div id="apiStatus" class="api-status disconnected">○ Enter Key</div>
-            </div>
+<!-- Nav -->
+<nav>
+  <div class="nav-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      <path d="M7 10l3 3 2-4 3 3 2-2"/>
+    </svg>
+    PortfolioIQ
+  </div>
+  <ul class="nav-links">
+    <li><a href="#quickstart">Quickstart</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#agents">Agents</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#structure">Structure</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="https://github.com/GameChaser782/PortfolioIQ" class="nav-cta">GitHub →</a></li>
+  </ul>
+</nav>
 
-            <div class="input-container">
-                <textarea id="mainInput" class="main-input" placeholder="Enter your analysis request. Use @TICKER to add stocks.
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Open Source · MIT License
+  </div>
+  <h1>AI agents that <span>debate</span> your stocks</h1>
+  <p>Multi-agent financial advisor with bull/bear stock debates, live news analysis, and ML predictions. One command to run.</p>
+  <div class="hero-ctas">
+    <a href="#quickstart" class="btn-primary">Get started →</a>
+    <a href="https://github.com/GameChaser782/PortfolioIQ" class="btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
 
-Example: Analyze my portfolio for long-term growth. @AAPL @MARUTI.NS @TCS.NS
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-comment"># Install and run in 3 commands</span></div>
+      <div><span class="t-cmd">$ </span>pip install portfolioiq</div>
+      <div><span class="t-cmd">$ </span>portfolioiq setup <span class="t-comment">  # pick your LLM provider</span></div>
+      <div><span class="t-cmd">$ </span>portfolioiq serve</div>
+      <br>
+      <div><span class="t-ok">✓</span> <span class="t-out">PortfolioIQ  http://localhost:8000</span></div>
+      <div><span class="t-ok">✓</span> <span class="t-out">Provider:    ollama/llama3</span></div>
+      <div><span class="t-ok">✓</span> <span class="t-out">API docs:    http://localhost:8000/docs</span></div>
+    </div>
+  </div>
+</div>
 
-Type @ and start typing for suggestions (e.g., @airtel, @reliance)"></textarea>
-                <div id="searchPopup" class="search-popup"></div>
-            </div>
-            <div class="hint">Type @ for stock suggestions • Arrow keys to navigate • Enter to select</div>
+<hr class="divider">
 
-            <div class="portfolio-summary">
-                <div>
-                    <div class="portfolio-label">Portfolio Value</div>
-                    <div id="portfolioTotal" class="portfolio-total">$0.00</div>
-                </div>
-                <div class="portfolio-label" id="stockCount">0 stocks</div>
-            </div>
+<!-- Features -->
+<section class="section" id="features">
+  <div class="section-label">What it does</div>
+  <h2>Everything a financial advisor needs</h2>
+  <p class="section-sub">Eight specialized agents working together — no API key required to start (uses Ollama by default).</p>
 
-            <div id="stockChips" class="stock-chips"></div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>Bull vs Bear Debates</h3>
+      <p>Two AI agents argue opposing cases on any stock with real data, rebuttals, and a moderator verdict with confidence score.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Full Stock Analysis</h3>
+      <p>Researcher + Analyst + Risk Assessor work together on fundamentals, technicals, and portfolio risk scoring.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📰</div>
+      <h3>News Impact Analysis</h3>
+      <p>Connects global macro events (tariffs, rate decisions, geopolitics) to specific stocks and sectors in your portfolio.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>ML Price Predictions</h3>
+      <p>XGBoost classifier trained on OHLCV + technical indicators predicts 5-day price direction. Train on any ticker.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Streaming Chat</h3>
+      <p>Ask anything about your portfolio. The supervisor agent routes to the right specialist and streams the response token by token.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Any LLM Provider</h3>
+      <p>Ollama, Gemini, Claude, OpenAI — all treated equally. Pick on first run via setup wizard. No default, no lock-in.</p>
+    </div>
+  </div>
+</section>
 
-            <div class="btn-group">
-                <button id="analyzeBtn" class="analyze-btn">Analyze Portfolio</button>
-                <button id="clearBtn" class="clear-btn">Clear</button>
-            </div>
-        </div>
+<hr class="divider">
 
-        <div id="loader" class="loader">
-            <div class="spinner"></div>
-        </div>
+<!-- Quickstart -->
+<section class="section" id="quickstart">
+  <div class="section-label">Get started</div>
+  <h2>Up and running in minutes</h2>
+  <p class="section-sub">No financial data API key required — yfinance works out of the box. Add Finnhub for faster data.</p>
 
-        <div id="resultCard" class="card result-card">
-            <div class="score-label">Portfolio Score</div>
-            <div id="scoreDisplay" class="score-display">--</div>
-            <button id="detailsToggle" class="details-toggle">Show Reasoning</button>
-            <div id="reasoning" class="reasoning"></div>
-        </div>
-
-        <div class="footer">
-            Get your free API key at <a href="https://ai.google.dev" target="_blank">ai.google.dev</a> • Your key stays
-            in your browser only
-        </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install</h4>
+        <p>Requires Python 3.11+. Install the package and its dependencies.</p>
+        <div class="code-block">pip install portfolioiq</div>
+        <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--dimmer)">For ML support: <code style="font-size:0.82rem">pip install "portfolioiq[ml]"</code></p>
+      </div>
     </div>
 
-    <script>
-        const POPULAR_STOCKS = [
-            { ticker: 'AAPL', name: 'Apple Inc.', price: 178.50, currency: 'USD' },
-            { ticker: 'MSFT', name: 'Microsoft Corporation', price: 378.90, currency: 'USD' },
-            { ticker: 'GOOGL', name: 'Alphabet Inc.', price: 141.80, currency: 'USD' },
-            { ticker: 'AMZN', name: 'Amazon.com Inc.', price: 178.25, currency: 'USD' },
-            { ticker: 'TSLA', name: 'Tesla Inc.', price: 248.50, currency: 'USD' },
-            { ticker: 'META', name: 'Meta Platforms Inc.', price: 474.30, currency: 'USD' },
-            { ticker: 'NVDA', name: 'NVIDIA Corporation', price: 682.50, currency: 'USD' },
-            { ticker: 'NFLX', name: 'Netflix Inc.', price: 545.20, currency: 'USD' },
-            { ticker: 'MARUTI.NS', name: 'Maruti Suzuki India', price: 14199, currency: 'INR' },
-            { ticker: 'BHARTIARTL.NS', name: 'Bharti Airtel Limited', price: 1949, currency: 'INR' },
-            { ticker: 'RELIANCE.NS', name: 'Reliance Industries', price: 2890, currency: 'INR' },
-            { ticker: 'TCS.NS', name: 'Tata Consultancy Services', price: 4250, currency: 'INR' },
-            { ticker: 'INFY.NS', name: 'Infosys Limited', price: 1820, currency: 'INR' },
-            { ticker: 'HDFCBANK.NS', name: 'HDFC Bank Limited', price: 1685, currency: 'INR' },
-            { ticker: 'ICICIBANK.NS', name: 'ICICI Bank Limited', price: 1245, currency: 'INR' },
-            { ticker: 'WIPRO.NS', name: 'Wipro Limited', price: 485, currency: 'INR' },
-            { ticker: 'SBIN.NS', name: 'State Bank of India', price: 825, currency: 'INR' },
-            { ticker: 'TATAMOTORS.NS', name: 'Tata Motors Limited', price: 765, currency: 'INR' },
-            { ticker: 'TATASTEEL.NS', name: 'Tata Steel Limited', price: 142, currency: 'INR' },
-            { ticker: 'ITC.NS', name: 'ITC Limited', price: 465, currency: 'INR' },
-            { ticker: 'HINDUNILVR.NS', name: 'Hindustan Unilever', price: 2380, currency: 'INR' },
-            { ticker: 'BAJFINANCE.NS', name: 'Bajaj Finance', price: 7450, currency: 'INR' },
-            { ticker: 'KOTAKBANK.NS', name: 'Kotak Mahindra Bank', price: 1780, currency: 'INR' },
-            { ticker: 'LT.NS', name: 'Larsen & Toubro', price: 3650, currency: 'INR' },
-            { ticker: 'ADANIENT.NS', name: 'Adani Enterprises', price: 2890, currency: 'INR' },
-            { ticker: 'AIRTEL', name: 'Bharti Airtel', alias: 'BHARTIARTL.NS', price: 1949, currency: 'INR' },
-        ];
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Run the setup wizard</h4>
+        <p>Pick your LLM provider and enter API keys. Stored in <code style="font-size:0.82rem">.env</code> — never committed.</p>
+        <div class="code-block">portfolioiq setup</div>
+        <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--dimmer)">Providers: Ollama (local, free) · Gemini · Claude · OpenAI</p>
+      </div>
+    </div>
 
-        const CURRENCY_SYMBOLS = { USD: '$', INR: '₹', EUR: '€', GBP: '£', JPY: '¥' };
-        let portfolio = [];
-        let apiKey = '';
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Start the server</h4>
+        <p>Starts FastAPI backend and serves the React frontend at localhost:8000.</p>
+        <div class="code-block">portfolioiq serve</div>
+      </div>
+    </div>
 
-        function getCurrencySymbol(c) { return CURRENCY_SYMBOLS[c] || c + ' '; }
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Run a stock debate (optional CLI)</h4>
+        <p>Runs a 3-round bull vs bear debate directly in your terminal.</p>
+        <div class="code-block">portfolioiq debate AAPL</div>
+      </div>
+    </div>
 
-        function init() {
-            document.getElementById('mainInput').addEventListener('input', handleInput);
-            document.getElementById('mainInput').addEventListener('keydown', handleKeydown);
-            document.getElementById('analyzeBtn').addEventListener('click', analyzePortfolio);
-            document.getElementById('clearBtn').addEventListener('click', clearAll);
-            document.getElementById('detailsToggle').addEventListener('click', toggleDetails);
-            document.getElementById('apiKeyInput').addEventListener('input', handleApiKeyChange);
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Train ML models (optional)</h4>
+        <p>Train a price direction classifier on any ticker, then predict.</p>
+        <div class="code-block">portfolioiq train --ticker AAPL --days 365
+portfolioiq predict AAPL</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-            const savedKey = sessionStorage.getItem('gemini_api_key');
-            if (savedKey) {
-                apiKey = savedKey;
-                document.getElementById('apiKeyInput').value = savedKey;
-                updateApiStatus(true);
-            }
-        }
+<hr class="divider">
 
-        function handleApiKeyChange(e) {
-            apiKey = e.target.value.trim();
-            if (apiKey) {
-                sessionStorage.setItem('gemini_api_key', apiKey);
-                updateApiStatus(true);
-            } else {
-                sessionStorage.removeItem('gemini_api_key');
-                updateApiStatus(false);
-            }
-        }
+<!-- Agents -->
+<section class="section" id="agents">
+  <div class="section-label">Architecture</div>
+  <h2>Eight specialized agents</h2>
+  <p class="section-sub">Supervisor routes queries. Each sub-agent has a YAML config and a markdown persona file in <code>agents/</code>.</p>
 
-        function updateApiStatus(connected) {
-            const status = document.getElementById('apiStatus');
-            status.className = connected ? 'api-status connected' : 'api-status disconnected';
-            status.innerHTML = connected ? '● Ready' : '○ Enter Key';
-        }
+  <div class="agents-grid">
+    <div class="agent-card">
+      <div class="agent-name"><span class="tag tag-sup">supervisor</span></div>
+      <p>Routes user queries to the right specialist. Synthesizes multi-agent responses into a single coherent answer.</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">🔍 Researcher</div>
+      <p>Gathers raw financial data — prices, fundamentals, earnings, news — using the tool registry.</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">📈 Analyst</div>
+      <p>Technical and fundamental analysis. Calculates indicators, interprets patterns, and scores the stock.</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name"><span class="tag tag-bull">bull</span> Debater</div>
+      <p>Argues the bullish case with specific evidence: P/E ratios, revenue growth, momentum signals, positive news catalysts.</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name"><span class="tag tag-bear">bear</span> Debater</div>
+      <p>Argues the bearish case: debt levels, insider selling, competitive threats, macro headwinds.</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name"><span class="tag tag-mod">mod</span> Moderator</div>
+      <p>Judges the debate, scores argument quality, and outputs a structured verdict with confidence score (0–100).</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">📰 News Analyst</div>
+      <p>Maps global news events to stock and sector impact. Answers "how do tariffs affect my portfolio?"</p>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">⚠️ Risk Assessor</div>
+      <p>Portfolio-level risk: concentration, volatility, drawdown, correlation analysis.</p>
+    </div>
+  </div>
+</section>
 
-        function handleInput(e) {
-            const text = e.target.value;
-            const cursorPos = e.target.selectionStart;
-            const textBeforeCursor = text.substring(0, cursorPos);
-            const atMatch = textBeforeCursor.match(/@([\w.]*)$/);
+<hr class="divider">
 
-            if (atMatch) {
-                showSearchResults(atMatch[1]);
-            } else {
-                hideSearchPopup();
-            }
-        }
+<!-- API Reference -->
+<section class="section" id="api">
+  <div class="section-label">API Reference</div>
+  <h2>REST API</h2>
+  <p class="section-sub">Full OpenAPI docs available at <code>/docs</code> when the server is running.</p>
 
-        function handleKeydown(e) {
-            const popup = document.getElementById('searchPopup');
-            if (!popup.classList.contains('active')) return;
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <table class="api-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/health</code></td>
+          <td>Server health + active provider/model</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/search?q=</code></td>
+          <td>Symbol autocomplete (no API key needed)</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/quote/{ticker}</code></td>
+          <td>Current price, change, currency</td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/api/stream</code></td>
+          <td>SSE streaming chat (send message, get token stream)</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/debate/{ticker}</code></td>
+          <td>Run bull/bear debate. <code>?rounds=1-5</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/analyze/{ticker}</code></td>
+          <td>Full analysis: fundamentals + technicals + score</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/news/{ticker}</code></td>
+          <td>News impact analysis</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/sessions</code></td>
+          <td>List saved portfolio sessions</td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/api/sessions</code></td>
+          <td>Create a new session</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/sessions/{id}</code></td>
+          <td>Load a session</td>
+        </tr>
+        <tr>
+          <td><span class="method method-put">PUT</span></td>
+          <td><code>/api/sessions/{id}</code></td>
+          <td>Save/update a session</td>
+        </tr>
+        <tr>
+          <td><span class="method method-del">DEL</span></td>
+          <td><code>/api/sessions/{id}</code></td>
+          <td>Delete a session</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-            const items = popup.querySelectorAll('.search-item[data-ticker]');
-            if (items.length === 0) return;
+<hr class="divider">
 
-            let current = popup.querySelector('.search-item.selected');
-            let idx = current ? Array.from(items).indexOf(current) : -1;
+<!-- Directory Structure -->
+<section class="section" id="structure">
+  <div class="section-label">Codebase</div>
+  <h2>Directory structure</h2>
+  <p class="section-sub">The project is split into a Python backend package and a Next.js frontend.</p>
 
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (current) current.classList.remove('selected');
-                idx = (idx + 1) % items.length;
-                items[idx].classList.add('selected');
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (current) current.classList.remove('selected');
-                idx = idx <= 0 ? items.length - 1 : idx - 1;
-                items[idx].classList.add('selected');
-            } else if (e.key === 'Enter' || e.key === 'Tab') {
-                e.preventDefault();
-                const selected = current || items[0];
-                if (selected) selectStock(selected.dataset.ticker);
-            } else if (e.key === 'Escape') {
-                hideSearchPopup();
-            }
-        }
+  <div class="dir-tree">
+<pre><span class="dir">PortfolioIQ/</span>
+├── <span class="file">pyproject.toml</span>          <span class="comment"># pip installable, CLI entry point</span>
+├── <span class="file">Makefile</span>               <span class="comment"># make run / make test / make train</span>
+├── <span class="file">.env.example</span>           <span class="comment"># copy to .env, fill in API keys</span>
+│
+├── <span class="dir">portfolioiq/</span>           <span class="comment"># main Python package</span>
+│   ├── <span class="file">__main__.py</span>         <span class="comment"># CLI: setup / serve / chat / debate / train / predict</span>
+│   ├── <span class="file">config.py</span>           <span class="comment"># YAML + .env config loader</span>
+│   ├── <span class="file">agent.py</span>            <span class="comment"># PortfolioAgent class (supervisor)</span>
+│   ├── <span class="file">server.py</span>           <span class="comment"># FastAPI app factory + all endpoints</span>
+│   │
+│   ├── <span class="dir">graphs/</span>             <span class="comment"># LangGraph StateGraphs</span>
+│   │   ├── <span class="file">supervisor.py</span>
+│   │   ├── <span class="file">debate.py</span>       <span class="comment"># bull/bear/moderator loop</span>
+│   │   ├── <span class="file">analysis.py</span>
+│   │   └── <span class="file">news.py</span>
+│   │
+│   ├── <span class="dir">tools/</span>              <span class="comment"># @tool decorated financial tools</span>
+│   │   ├── <span class="file">stock_lookup.py</span>
+│   │   ├── <span class="file">get_fundamentals.py</span>
+│   │   ├── <span class="file">get_earnings.py</span>
+│   │   ├── <span class="file">get_history.py</span>
+│   │   ├── <span class="file">calculate_indicators.py</span>
+│   │   └── <span class="file">news_search.py</span>
+│   │
+│   ├── <span class="dir">data/</span>
+│   │   └── <span class="file">provider.py</span>     <span class="comment"># Finnhub (fast) + yfinance (fallback)</span>
+│   │
+│   ├── <span class="dir">memory/</span>
+│   │   └── <span class="file">long_term.py</span>    <span class="comment"># SQLite long-term memory</span>
+│   │
+│   └── <span class="dir">ml/</span>                 <span class="comment"># XGBoost ML pipeline</span>
+│       ├── <span class="file">features.py</span>
+│       ├── <span class="file">train.py</span>
+│       └── <span class="file">predict.py</span>
+│
+├── <span class="dir">agents/</span>                <span class="comment"># per-agent YAML config + persona markdown</span>
+│   ├── <span class="file">supervisor.yaml</span> + <span class="file">supervisor_persona.md</span>
+│   ├── <span class="file">bull_debater.yaml</span> + <span class="file">bear_debater.yaml</span>
+│   └── <span class="file">…</span>
+│
+└── <span class="dir">frontend/</span>              <span class="comment"># Next.js App Router (TypeScript + Tailwind)</span>
+    ├── <span class="file">package.json</span>
+    ├── <span class="dir">app/</span>
+    │   └── <span class="file">page.tsx</span>        <span class="comment"># main app shell</span>
+    └── <span class="dir">components/</span>
+        ├── <span class="file">ChatPanel.tsx</span>
+        ├── <span class="file">DebatePanel.tsx</span>
+        ├── <span class="file">PortfolioPanel.tsx</span>
+        └── <span class="file">SessionManager.tsx</span></pre>
+  </div>
+</section>
 
-        function showSearchResults(query) {
-            const popup = document.getElementById('searchPopup');
-            const q = query.toLowerCase();
+<hr class="divider">
 
-            let matches = POPULAR_STOCKS.filter(s =>
-                s.ticker.toLowerCase().includes(q) ||
-                s.name.toLowerCase().includes(q) ||
-                (s.alias && s.alias.toLowerCase().includes(q))
-            );
+<!-- Contributing -->
+<section class="section" id="contributing">
+  <div class="section-label">Open source</div>
+  <h2>Contributing</h2>
+  <p class="section-sub">The codebase is designed to be easy to extend. Each agent, tool, and graph is an isolated module.</p>
 
-            let html = '';
+  <div class="contrib-grid">
+    <div class="contrib-card">
+      <h3>Adding a new agent</h3>
+      <p>Create <code>agents/my_agent.yaml</code> and <code>my_agent_persona.md</code>, implement the node function in <code>portfolioiq/graphs/</code>, and wire it into the supervisor.</p>
+    </div>
+    <div class="contrib-card">
+      <h3>Adding a new tool</h3>
+      <p>Add a file in <code>portfolioiq/tools/</code> with a <code>@tool</code> decorated function. Import it in the agent's YAML tool list. The registry picks it up automatically.</p>
+    </div>
+    <div class="contrib-card">
+      <h3>Adding a data provider</h3>
+      <p>Extend <code>portfolioiq/data/provider.py</code>. The <code>DataProvider</code> class has a clean interface: <code>get_quote()</code>, <code>get_fundamentals()</code>, <code>get_candles()</code>, etc.</p>
+    </div>
+  </div>
 
-            if (q.length >= 1) {
-                const customTicker = q.toUpperCase();
-                html += `<div class="search-item selected" data-ticker="${customTicker}" data-custom="true">
-                    <div>
-                        <span class="search-ticker">${customTicker}</span>
-                        <span class="search-name">Add any stock ticker</span>
-                    </div>
-                    <span style="color: var(--text-muted);">Press Enter ↵</span>
-                </div>`;
-            }
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Fork and clone</h4>
+        <div class="code-block">git clone https://github.com/GameChaser782/PortfolioIQ
+cd PortfolioIQ
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[all]"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Set up environment</h4>
+        <div class="code-block">cp .env.example .env
+# Edit .env with your LLM provider key
+portfolioiq setup</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Run tests and submit a PR</h4>
+        <div class="code-block">pytest tests/
+# Open a PR — describe what agent/tool/graph you added</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-            html += matches.slice(0, 7).map((s, i) => `
-                <div class="search-item" data-ticker="${s.alias || s.ticker}">
-                    <div>
-                        <span class="search-ticker">${s.ticker}</span>
-                        <span class="search-name">${s.name}</span>
-                    </div>
-                    <span style="color: #38ef7d;">${getCurrencySymbol(s.currency)}${s.price.toLocaleString()}</span>
-                </div>
-            `).join('');
+<footer>
+  <p>
+    PortfolioIQ is open source under the MIT license.
+    <a href="https://github.com/GameChaser782/PortfolioIQ">GitHub</a> ·
+    <a href="https://github.com/GameChaser782/PortfolioIQ/issues">Issues</a> ·
+    <a href="https://github.com/GameChaser782/PortfolioIQ/blob/main/README.md">README</a>
+  </p>
+  <p style="margin-top:0.5rem; font-size:0.78rem;">Not financial advice. For educational and research purposes only.</p>
+</footer>
 
-            if (!html) {
-                html = '<div class="search-loading">Type a stock ticker (e.g., AAPL, TSLA, RELIANCE.NS)</div>';
-            }
-
-            popup.innerHTML = html;
-            popup.querySelectorAll('.search-item[data-ticker]').forEach(item => {
-                item.addEventListener('click', () => selectStock(item.dataset.ticker, item.dataset.custom === 'true'));
-            });
-            popup.classList.add('active');
-        }
-
-        function selectStock(ticker, isCustom = false) {
-            hideSearchPopup();
-
-            const input = document.getElementById('mainInput');
-            const text = input.value;
-            const cursorPos = input.selectionStart;
-            const beforeCursor = text.substring(0, cursorPos);
-            const afterCursor = text.substring(cursorPos);
-            const newBefore = beforeCursor.replace(/@[\w.]*$/, '');
-
-            input.value = newBefore + '[' + ticker + '] ' + afterCursor;
-            const newCursorPos = newBefore.length + ticker.length + 3;
-            input.setSelectionRange(newCursorPos, newCursorPos);
-            input.focus();
-
-            if (portfolio.some(s => s.ticker === ticker)) return;
-
-            const stockData = POPULAR_STOCKS.find(s => s.ticker === ticker || s.alias === ticker);
-            if (stockData) {
-                portfolio.push({
-                    ticker: stockData.alias || stockData.ticker,
-                    name: stockData.name,
-                    price: stockData.price,
-                    currency: stockData.currency,
-                    quantity: 1
-                });
-            } else {
-                const currency = ticker.endsWith('.NS') || ticker.endsWith('.BO') ? 'INR' : 'USD';
-                portfolio.push({
-                    ticker: ticker,
-                    name: ticker,
-                    price: 0,
-                    currency: currency,
-                    quantity: 1
-                });
-            }
-            renderChips();
-            updateTotal();
-        }
-
-        function hideSearchPopup() {
-            document.getElementById('searchPopup').classList.remove('active');
-        }
-
-        function renderChips() {
-            const container = document.getElementById('stockChips');
-            container.innerHTML = '';
-
-            portfolio.forEach((stock, idx) => {
-                const chip = document.createElement('div');
-                chip.className = 'stock-chip';
-                const sym = getCurrencySymbol(stock.currency);
-                chip.innerHTML = `
-            <span class="chip-ticker">${stock.ticker}</span>
-            <span class="chip-price">${sym}${stock.price.toLocaleString()}</span>
-            <div class="chip-qty">
-                <button class="qty-btn minus">−</button>
-                <span class="chip-qty-value">${stock.quantity}</span>
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="chip-remove">✕</button>
-        `;
-
-                chip.querySelector('.minus').addEventListener('click', () => {
-                    portfolio[idx].quantity = Math.max(1, portfolio[idx].quantity - 1);
-                    renderChips();
-                    updateTotal();
-                });
-
-                chip.querySelector('.plus').addEventListener('click', () => {
-                    portfolio[idx].quantity += 1;
-                    renderChips();
-                    updateTotal();
-                });
-
-                chip.querySelector('.chip-remove').addEventListener('click', () => {
-                    const ticker = portfolio[idx].ticker;
-                    portfolio.splice(idx, 1);
-                    removeFromInput(ticker);
-                    renderChips();
-                    updateTotal();
-                });
-
-                container.appendChild(chip);
-            });
-
-            document.getElementById('stockCount').textContent = portfolio.length + ' stock' + (portfolio.length !== 1 ? 's' : '');
-        }
-
-        function removeFromInput(ticker) {
-            const input = document.getElementById('mainInput');
-            input.value = input.value.replace(new RegExp('\\[' + ticker.replace('.', '\\.') + '\\]\\s*', 'g'), '');
-        }
-
-        function updateTotal() {
-            const byCurrency = {};
-            portfolio.forEach(s => {
-                const c = s.currency || 'USD';
-                byCurrency[c] = (byCurrency[c] || 0) + (s.price * s.quantity);
-            });
-            const currencies = Object.keys(byCurrency);
-            let text;
-            if (currencies.length === 0) {
-                text = '$0.00';
-            } else if (currencies.length === 1) {
-                const c = currencies[0];
-                text = getCurrencySymbol(c) + byCurrency[c].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            } else {
-                text = currencies.map(c => getCurrencySymbol(c) + byCurrency[c].toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })).join(' + ');
-            }
-            document.getElementById('portfolioTotal').textContent = text;
-        }
-
-        function clearAll() {
-            portfolio = [];
-            document.getElementById('mainInput').value = '';
-            document.getElementById('stockChips').innerHTML = '';
-            document.getElementById('resultCard').style.display = 'none';
-            document.getElementById('stockCount').textContent = '0 stocks';
-            updateTotal();
-        }
-
-        async function analyzePortfolio() {
-            const btn = document.getElementById('analyzeBtn');
-            const loader = document.getElementById('loader');
-            const resultCard = document.getElementById('resultCard');
-            const input = document.getElementById('mainInput');
-
-            if (portfolio.length === 0) {
-                alert('Add at least one stock using @TICKER');
-                return;
-            }
-
-            if (!apiKey) {
-                alert('Please enter your Gemini API key. Get one free at ai.google.dev');
-                document.getElementById('apiKeyInput').focus();
-                return;
-            }
-
-            const instructions = input.value.replace(/\[\w+\.?\w*\]/g, '').trim();
-            const portfolioStr = portfolio.map(s => `- ${s.ticker}: ${s.quantity} shares @ ${getCurrencySymbol(s.currency)}${s.price}`).join('\n');
-
-            const prompt = `Analyze this stock portfolio and provide an investment quality score.
-
-User Instructions:
-${instructions || 'Provide a general analysis.'}
-
-Portfolio:
-${portfolioStr}
-
-Instructions:
-- Evaluate diversification, risk, and growth potential.
-- Return ONLY a valid JSON object with no markdown or extra text.
-- Format: {"score": <integer 1-100>, "reasoning": "<detailed explanation>"}`;
-
-            btn.disabled = true;
-            btn.innerText = 'Analyzing...';
-            loader.style.display = 'block';
-            resultCard.style.display = 'none';
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { temperature: 0.7 }
-                    })
-                });
-
-                const data = await res.json();
-
-                if (data.error) {
-                    alert('API Error: ' + data.error.message);
-                    return;
-                }
-
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                let result;
-
-                try {
-                    const jsonMatch = text.match(/\{[\s\S]*"score"[\s\S]*"reasoning"[\s\S]*\}/);
-                    result = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(text);
-                } catch {
-                    const scoreMatch = text.match(/"score"\s*:\s*(\d+)/);
-                    const reasoningMatch = text.match(/"reasoning"\s*:\s*"([^"]+)"/);
-                    result = {
-                        score: scoreMatch ? parseInt(scoreMatch[1]) : 0,
-                        reasoning: reasoningMatch ? reasoningMatch[1] : text
-                    };
-                }
-
-                document.getElementById('scoreDisplay').innerText = result.score || '?';
-                document.getElementById('reasoning').innerText = result.reasoning || 'No reasoning provided.';
-                document.getElementById('reasoning').style.display = 'none';
-                document.getElementById('detailsToggle').innerText = 'Show Reasoning';
-                resultCard.style.display = 'block';
-            } catch (e) {
-                alert('Analysis failed: ' + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Analyze Portfolio';
-                loader.style.display = 'none';
-            }
-        }
-
-        function toggleDetails() {
-            const reasoning = document.getElementById('reasoning');
-            const btn = document.getElementById('detailsToggle');
-            const visible = reasoning.style.display !== 'none';
-            reasoning.style.display = visible ? 'none' : 'block';
-            btn.innerText = visible ? 'Show Reasoning' : 'Hide Reasoning';
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
 </body>
-
 </html>

@@ -24,29 +24,61 @@ _YF_HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 # ── Symbol search (autocomplete) ─────────────────────────────────────────────
 
+_PREFERRED_EXCHANGES = {"NMS", "NYQ", "NGM", "ASE", "NSI", "BSE", "LSE", "TOR", "AMS", "PAR", "FRA", "SHH", "HKG"}
+_ALLOWED_TYPES = {"EQUITY", "ETF", "INDEX", "FUTURE", "CRYPTOCURRENCY"}
+_BLOCKED_TYPES = {"MUTUALFUND", "OPTION"}
+
 def search_symbols(query: str, limit: int = 8) -> list[dict]:
-    """Fast symbol search using Yahoo Finance's search endpoint. No API key needed."""
+    """Fast symbol search using Yahoo Finance's search endpoint. No API key needed.
+
+    Filters to EQUITY/ETF/INDEX. Prioritises well-known exchanges.
+    """
     if not query or len(query) < 1:
         return []
     try:
+        # Fetch extra so we have room to filter
         r = httpx.get(
             _YF_SEARCH_URL,
-            params={"q": query, "quotesCount": limit, "newsCount": 0, "enableFuzzyQuery": True},
+            params={"q": query, "quotesCount": limit + 8, "newsCount": 0, "enableFuzzyQuery": True},
             headers=_YF_HEADERS,
             timeout=3.0,
         )
         r.raise_for_status()
         quotes = r.json().get("quotes", [])
-        return [
-            {
-                "symbol": q.get("symbol", ""),
-                "name": q.get("shortname") or q.get("longname") or "",
-                "exchange": q.get("exchange", ""),
-                "type": q.get("quoteType", "EQUITY"),
-            }
-            for q in quotes
-            if q.get("symbol")
-        ]
+
+        results = []
+        for q in quotes:
+            sym = q.get("symbol", "")
+            qtype = q.get("quoteType", "EQUITY")
+            exch = q.get("exchange", "")
+            name = q.get("shortname") or q.get("longname") or ""
+
+            if not sym:
+                continue
+            if qtype in _BLOCKED_TYPES:
+                continue
+            if qtype not in _ALLOWED_TYPES:
+                continue
+            # Skip results with no recognisable name
+            if not name or len(name) < 2:
+                continue
+
+            results.append({
+                "symbol": sym,
+                "name": name,
+                "exchange": exch,
+                "type": qtype,
+                "_preferred": exch in _PREFERRED_EXCHANGES,
+            })
+
+        # Sort: preferred exchanges first, then alphabetically by symbol length (shorter = more likely what user wants)
+        results.sort(key=lambda x: (not x["_preferred"], len(x["symbol"])))
+
+        # Strip internal sort key
+        for r in results:
+            r.pop("_preferred", None)
+
+        return results[:limit]
     except Exception:
         return []
 
@@ -147,7 +179,27 @@ class DataProvider:
                     }
             except Exception:
                 pass
-        return {}
+        return self._yf_profile(ticker)
+
+    def _yf_profile(self, ticker: str) -> dict:
+        import yfinance as yf
+        try:
+            info = yf.Ticker(ticker).info
+            return {
+                "name": info.get("longName") or info.get("shortName") or ticker,
+                "ticker": ticker,
+                "exchange": info.get("exchange"),
+                "currency": info.get("currency"),
+                "country": info.get("country"),
+                "sector": info.get("sector"),
+                "industry": info.get("industry"),
+                "market_cap": info.get("marketCap"),
+                "employees": info.get("fullTimeEmployees"),
+                "ipo_date": info.get("ipoExpectedDate") or info.get("firstTradeDateEpochUtc"),
+                "website": info.get("website"),
+            }
+        except Exception:
+            return {}
 
     # ── Fundamentals ──────────────────────────────────────────────────────────
 

@@ -65,8 +65,19 @@ class PortfolioAgent:
         thread_id: str = "default",
         user_id: str = "default",
     ) -> AsyncIterator[str]:
-        """Stream response tokens as they arrive."""
+        """
+        Stream the final response tokens.
+
+        The supervisor graph may call tools before producing a final answer.
+        We buffer each LLM invocation and only yield its tokens if that
+        invocation ends without tool calls (i.e. it IS the final response).
+        This prevents garbled output from intermediate tool-calling text.
+        """
         graph = self._get_graph()
+
+        # run_id → {"tokens": [str, ...], "has_tool_call": bool}
+        runs: dict[str, dict] = {}
+
         async for event in graph.astream_events(
             {
                 "messages": [HumanMessage(content=message)],
@@ -76,13 +87,35 @@ class PortfolioAgent:
             config={"configurable": {"thread_id": thread_id}},
             version="v2",
         ):
-            if (
-                event["event"] == "on_chat_model_stream"
-                and event["metadata"].get("langgraph_node") == "agent"
-            ):
+            kind = event["event"]
+            node = event["metadata"].get("langgraph_node", "")
+            run_id = event.get("run_id", "")
+
+            if kind == "on_chat_model_start" and node == "agent":
+                runs[run_id] = {"tokens": [], "has_tool_call": False}
+
+            elif kind == "on_chat_model_stream" and node == "agent":
                 chunk = event["data"]["chunk"]
-                if chunk.content:
-                    yield chunk.content
+                if chunk.tool_call_chunks:
+                    if run_id in runs:
+                        runs[run_id]["has_tool_call"] = True
+                elif chunk.content and run_id in runs and not runs[run_id]["has_tool_call"]:
+                    content = chunk.content
+                    if isinstance(content, list):
+                        text = "".join(
+                            b["text"] for b in content
+                            if isinstance(b, dict) and b.get("type") == "text"
+                        )
+                    else:
+                        text = str(content)
+                    if text:
+                        runs[run_id]["tokens"].append(text)
+
+            elif kind == "on_chat_model_end" and node == "agent":
+                if run_id in runs and not runs[run_id]["has_tool_call"]:
+                    for token in runs[run_id]["tokens"]:
+                        yield token
+                runs.pop(run_id, None)
 
     def serve(self, host: str | None = None, port: int | None = None) -> None:
         """Start the FastAPI server."""

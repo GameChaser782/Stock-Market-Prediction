@@ -66,7 +66,6 @@ pandas-ta==0.4.71b0
 peewee==4.0.4
 platformdirs==4.9.6
 pluggy==1.6.0
--e git+https://github.com/GameChaser782/PortfolioIQ.git@501c5ef572928da28183bdb81bb3b14c543d04d2#egg=portfolioiq
 propcache==0.4.1
 protobuf==7.34.1
 pyasn1==0.6.3
