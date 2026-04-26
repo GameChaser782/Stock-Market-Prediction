@@ -287,6 +287,23 @@ def create_app(agent: "PortfolioAgent") -> FastAPI:
         from .chat_store import get_chat_store
         return get_chat_store().create_chat(body.session_id, body.name)
 
+    @app.patch("/api/chats/{chat_id}")
+    def rename_chat(chat_id: str, body: dict):
+        from .chat_store import get_chat_store
+        name = body.get("name")
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        chat = get_chat_store().rename_chat(chat_id, name)
+        if not chat:
+            raise HTTPException(status_code=404, detail="Chat not found")
+        return chat
+
+    @app.delete("/api/chats/{chat_id}", status_code=204)
+    def delete_chat(chat_id: str):
+        from .chat_store import get_chat_store
+        if not get_chat_store().delete_chat(chat_id):
+            raise HTTPException(status_code=404, detail="Chat not found")
+
     @app.get("/api/chat/history/{chat_id}")
     def get_chat_history(chat_id: str):
         from .chat_store import get_chat_store

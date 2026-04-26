@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Loader2, Swords, Paperclip, ChevronRight, MessageSquareText, PanelLeft, Plus } from "lucide-react";
+import { Send, Bot, User, Loader2, Swords, Paperclip, ChevronRight, MessageSquareText, PanelLeft, Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { streamChat, streamDebate, getChatHistory, saveChatMessage, getDebate, listChats, createChat } from "@/lib/api";
+import { streamChat, streamDebate, getChatHistory, saveChatMessage, getDebate, listChats, createChat, renameChat, deleteChat } from "@/lib/api";
 import type { ChatMessage, ChatThreadSummary, DebateEvent, PortfolioEntry } from "@/lib/api";
 import MentionInput from "./MentionInput";
 import DebateModal from "./DebateModal";
@@ -53,6 +53,8 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
   const [plusOpen, setPlusOpen] = useState(false);
   const [chats, setChats] = useState<ChatThreadSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -67,6 +69,14 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
     setChats(data);
     return data;
   }, [sessionId]);
+
+  const handleNewChat = useCallback(async () => {
+    if (!sessionId) return;
+    const created = await createChat(sessionId, `Chat ${chats.length + 1}`);
+    setChats((prev) => [created, ...prev]);
+    setActiveChatId(created.id);
+    setMessages([{ id: "welcome", role: "assistant", content: WELCOME }]);
+  }, [sessionId, chats.length]);
 
   const ensureChat = useCallback(async () => {
     if (!sessionId) return null;
@@ -88,9 +98,48 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
 
     (async () => {
       const data = await loadChats();
-      setActiveChatId((prev) => (prev && data.some((chat) => chat.id === prev) ? prev : (data[0]?.id ?? null)));
+      if (data.length === 0) {
+        // Auto-create first chat when session is new/empty
+        const created = await createChat(sessionId, "Chat 1");
+        setChats([created]);
+        setActiveChatId(created.id);
+      } else {
+        setActiveChatId((prev) => (prev && data.some((chat) => chat.id === prev) ? prev : (data[0]?.id ?? null)));
+      }
     })();
   }, [sessionId, loadChats]);
+
+  const handleRenameChat = async (id: string, e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!editingName.trim()) {
+      setEditingChatId(null);
+      return;
+    }
+    try {
+      const updated = await renameChat(id, editingName.trim());
+      setChats((prev) => prev.map((c) => (c.id === id ? { ...c, name: updated.name } : c)));
+      setEditingChatId(null);
+    } catch (err) {
+      console.error("Failed to rename chat:", err);
+    }
+  };
+
+  const handleDeleteChat = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this chat?")) return;
+    try {
+      await deleteChat(id);
+      setChats((prev) => {
+        const remaining = prev.filter((c) => c.id !== id);
+        if (activeChatId === id) {
+          setActiveChatId(remaining[0]?.id ?? null);
+        }
+        return remaining;
+      });
+    } catch (err) {
+      console.error("Failed to delete chat:", err);
+    }
+  };
 
   useEffect(() => {
     if (!activeChatId) {
@@ -198,14 +247,6 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
     }
   };
 
-  const handleNewChat = useCallback(async () => {
-    if (!sessionId) return;
-    const created = await createChat(sessionId, `Chat ${chats.length + 1}`);
-    setChats((prev) => [created, ...prev]);
-    setActiveChatId(created.id);
-    setMessages([{ id: "welcome", role: "assistant", content: WELCOME }]);
-  }, [sessionId, chats.length]);
-
   // Start a debate
   const startDebate = useCallback(async (rawText?: string) => {
     const source = (rawText ?? input).trim();
@@ -264,9 +305,10 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
             <div className="text-xs uppercase tracking-[0.18em] text-gray-500">Chats</div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-xs text-gray-500 hover:text-white"
+              className="rounded-lg p-1 text-gray-500 hover:bg-white/5 hover:text-white"
+              title="Hide sidebar"
             >
-              Hide
+              <PanelLeft className="h-4 w-4" />
             </button>
           </div>
           <div className="mt-1 text-sm text-gray-300">
@@ -289,29 +331,77 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
             </div>
           ) : chats.length === 0 ? (
             <div className="px-3 py-4 text-sm text-gray-500">
-              No chats yet in this session. Start one with `New chat`.
+              No chats yet.
             </div>
           ) : (
             <div className="space-y-1.5">
               {chats.map((chat) => {
                 const active = chat.id === activeChatId;
+                const editing = editingChatId === chat.id;
+
                 return (
-                  <button
-                    key={chat.id}
-                    onClick={() => setActiveChatId(chat.id)}
-                    className={`w-full rounded-2xl border px-3 py-3 text-left transition-colors ${
-                      active
-                        ? "border-violet-500/40 bg-violet-500/10"
-                        : "border-white/5 bg-white/[0.03] hover:bg-white/[0.06]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MessageSquareText className={`h-4 w-4 ${active ? "text-violet-300" : "text-gray-500"}`} />
-                      <span className="truncate text-sm font-medium text-white">{chat.name}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-gray-400">{previewText(chat.last_message)}</div>
-                    <div className="mt-2 text-[11px] text-gray-500">{chat.message_count} msgs</div>
-                  </button>
+                  <div key={chat.id} className="group relative">
+                    {editing ? (
+                      <form
+                        onSubmit={(e) => handleRenameChat(chat.id, e)}
+                        className="flex items-center gap-2 rounded-2xl border border-violet-500/40 bg-violet-500/10 px-3 py-3"
+                      >
+                        <input
+                          autoFocus
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onBlur={() => handleRenameChat(chat.id)}
+                          className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none"
+                        />
+                        <button type="submit" className="text-emerald-400 hover:text-emerald-300">
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingChatId(null)}
+                          className="text-gray-400 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setActiveChatId(chat.id)}
+                        className={`w-full rounded-2xl border px-3 py-3 text-left transition-colors ${
+                          active
+                            ? "border-violet-500/40 bg-violet-500/10"
+                            : "border-white/5 bg-white/[0.03] hover:bg-white/[0.06]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <MessageSquareText className={`h-4 w-4 shrink-0 ${active ? "text-violet-300" : "text-gray-500"}`} />
+                            <span className="truncate text-sm font-medium text-white">{chat.name}</span>
+                          </div>
+                          <div className={`flex items-center gap-1.5 ${active ? "flex" : "hidden group-hover:flex"}`}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingChatId(chat.id);
+                                setEditingName(chat.name);
+                              }}
+                              className="text-gray-500 hover:text-violet-300"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteChat(chat.id, e)}
+                              className="text-gray-500 hover:text-red-400"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-1 text-xs text-gray-400">{previewText(chat.last_message)}</div>
+                        <div className="mt-2 text-[11px] text-gray-500">{chat.message_count} msgs</div>
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -320,15 +410,17 @@ export default function ChatPanel({ sessionId, portfolio, currentSessionName }: 
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-      <div className="px-4 pt-3">
-        <button
-          onClick={() => setSidebarOpen((open) => !open)}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10"
-        >
-          <PanelLeft className="h-4 w-4 text-violet-300" />
-          {sidebarOpen ? "Hide chats" : "Show chats"}
-        </button>
-      </div>
+        {!sidebarOpen && (
+          <div className="px-4 pt-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-2 text-sm text-gray-300 hover:bg-white/10"
+              title="Show sidebar"
+            >
+              <PanelLeft className="h-4 w-4 text-violet-300" />
+            </button>
+          </div>
+        )}
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.map((m) => {

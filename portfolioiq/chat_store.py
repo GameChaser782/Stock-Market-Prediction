@@ -182,6 +182,17 @@ class ChatStore:
             return None
         return self.get_chat(chat_id)
 
+    def delete_chat(self, chat_id: str) -> bool:
+        with sqlite3.connect(self.db_path) as conn:
+            # Delete messages
+            conn.execute("DELETE FROM messages WHERE chat_id=?", (chat_id,))
+            # Delete debates
+            conn.execute("DELETE FROM debates WHERE chat_id=?", (chat_id,))
+            # Delete chat thread
+            cur = conn.execute("DELETE FROM chats WHERE id=?", (chat_id,))
+            conn.commit()
+            return cur.rowcount > 0
+
     # ── Messages ──────────────────────────────────────────────────────────────
 
     def add_message(self, session_id: str, chat_id: str, role: str, content: str,

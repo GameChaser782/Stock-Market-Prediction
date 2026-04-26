@@ -3,25 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PortfolioIQ — Multi-Agent Financial Advisor</title>
-  <meta name="description" content="AI agents that debate, analyze, and advise on your portfolio. Bull/bear stock debates, live news analysis, and ML predictions. One command to run.">
+  <title>Documentation — PortfolioIQ</title>
+  <meta name="description" content="Multi-agent financial advisor documentation. Repository, Quickstart, Installation, and Core Usage guide.">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d1a;
-      --bg2: #13132b;
-      --border: rgba(255,255,255,0.08);
+      --bg: #ffffff;
+      --bg-sidebar: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
       --violet: #7c3aed;
       --violet-light: #8b5cf6;
-      --violet-dim: rgba(124,58,237,0.15);
+      --code-bg: #f1f5f9;
+      --sidebar-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d0d1a;
+      --bg-sidebar: #090915;
+      --border: rgba(255,255,255,0.08);
       --text: #e2e8f0;
-      --muted: #94a3b8;
-      --dimmer: #64748b;
-      --green: #10b981;
-      --red: #ef4444;
-      --yellow: #f59e0b;
+      --text-muted: #94a3b8;
+      --code-bg: #1a1a2e;
     }
 
     html { scroll-behavior: smooth; }
@@ -31,801 +37,389 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
     }
 
-    a { color: var(--violet-light); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    code, pre {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ── Nav ── */
-    nav {
-      position: sticky;
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar-width);
+      height: 100vh;
+      position: fixed;
+      left: 0;
       top: 0;
-      z-index: 100;
-      background: rgba(13,13,26,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      height: 56px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      z-index: 50;
     }
 
-    .nav-brand {
+    .sidebar-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .sidebar-header svg { color: var(--violet); }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 1.5rem 1rem 0.5rem;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .sidebar-nav a:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .sidebar-nav a.active {
+      background: var(--violet);
+      color: #fff;
+    }
+
+    /* ── Main Content ── */
+    main {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 4rem 6rem;
+      max-width: 1200px;
+    }
+
+    section {
+      margin-bottom: 5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+    p { margin-bottom: 1rem; color: var(--text-muted); }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 2rem;
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: var(--text);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+
+    .btn-group { display: flex; gap: 1rem; margin-top: 2rem; }
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn-primary { background: var(--violet); color: #fff; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+
+    /* ── Theme Toggle Wave ── */
+    .theme-toggle-container {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    #theme-toggle {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       font-weight: 600;
-      color: #fff;
-      font-size: 1rem;
-    }
-
-    .nav-brand svg { color: var(--violet-light); }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--muted);
-      font-size: 0.875rem;
-      transition: color 0.15s;
-    }
-
-    .nav-links a:hover { color: #fff; text-decoration: none; }
-
-    .nav-cta {
-      background: var(--violet);
-      color: #fff !important;
-      padding: 0.4rem 1rem;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: background 0.15s !important;
-    }
-
-    .nav-cta:hover { background: var(--violet-light) !important; text-decoration: none !important; }
-
-    /* ── Hero ── */
-    .hero {
-      text-align: center;
-      padding: 6rem 2rem 4rem;
-      max-width: 860px;
-      margin: 0 auto;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--violet-dim);
-      border: 1px solid rgba(124,58,237,0.3);
-      color: var(--violet-light);
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      margin-bottom: 1.5rem;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.25rem);
-      font-weight: 700;
-      line-height: 1.15;
-      color: #fff;
-      margin-bottom: 1.25rem;
-    }
-
-    h1 span { color: var(--violet-light); }
-
-    .hero p {
-      font-size: 1.1rem;
-      color: var(--muted);
-      max-width: 600px;
-      margin: 0 auto 2.5rem;
-    }
-
-    .hero-ctas {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn-primary {
-      background: var(--violet);
-      color: #fff;
-      padding: 0.65rem 1.5rem;
-      border-radius: 10px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: background 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .btn-primary:hover { background: var(--violet-light); text-decoration: none; }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.65rem 1.5rem;
-      border-radius: 10px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: background 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .btn-secondary:hover { background: rgba(255,255,255,0.08); text-decoration: none; }
-
-    /* ── Terminal demo ── */
-    .terminal {
-      background: #090915;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      position: relative;
       overflow: hidden;
-      max-width: 640px;
-      margin: 3rem auto 0;
-      text-align: left;
+      transition: transform 0.2s;
     }
 
-    .terminal-bar {
-      background: rgba(255,255,255,0.04);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1rem;
-      display: flex;
-      gap: 0.4rem;
-      align-items: center;
+    #theme-toggle:active {
+      transform: scale(0.95);
     }
 
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
-    .dot-r { background: #ff5f56; }
-    .dot-y { background: #ffbd2e; }
-    .dot-g { background: #27c93f; }
-
-    .terminal-body { padding: 1.25rem 1.5rem; font-size: 0.85rem; line-height: 1.8; }
-
-    .t-cmd { color: #a78bfa; }
-    .t-comment { color: var(--dimmer); }
-    .t-out { color: var(--muted); }
-    .t-ok { color: var(--green); }
-
-    /* ── Section wrapper ── */
-    .section {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 4rem 2rem;
-    }
-
-    .section-label {
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      font-weight: 600;
-      color: var(--violet-light);
-      margin-bottom: 0.75rem;
-    }
-
-    h2 {
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 0.75rem;
-    }
-
-    .section-sub {
-      color: var(--muted);
-      font-size: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    hr.divider {
-      border: none;
-      border-top: 1px solid var(--border);
-    }
-
-    /* ── Feature grid ── */
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .feature-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.5rem;
-      transition: border-color 0.2s;
-    }
-
-    .feature-card:hover { border-color: rgba(124,58,237,0.35); }
-
-    .feature-icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .feature-card h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; }
-    .feature-card p { font-size: 0.875rem; color: var(--muted); }
-
-    /* ── Quickstart ── */
-    .steps { display: flex; flex-direction: column; gap: 1rem; }
-
-    .step {
-      display: flex;
-      gap: 1.25rem;
-      align-items: flex-start;
-    }
-
-    .step-num {
-      width: 28px;
-      height: 28px;
+    .wave-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      pointer-events: none;
+      z-index: 9999;
       border-radius: 50%;
-      background: var(--violet-dim);
-      border: 1px solid rgba(124,58,237,0.4);
-      color: var(--violet-light);
-      font-size: 0.78rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 0.2rem;
+      transform: scale(0);
+      transform-origin: center;
     }
 
-    .step-content h4 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.3rem; }
-    .step-content p { font-size: 0.875rem; color: var(--muted); }
-
-    .code-block {
-      background: #090915;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.6rem 1rem;
-      margin-top: 0.5rem;
-      font-size: 0.82rem;
-      color: #a78bfa;
-      overflow-x: auto;
+    .wave-animate {
+      animation: wave-expand 0.8s ease-out forwards;
     }
 
-    /* ── Agents ── */
-    .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 1rem;
+    @keyframes wave-expand {
+      from { transform: scale(0); opacity: 1; }
+      to { transform: scale(4); opacity: 0; }
     }
 
-    .agent-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
+    @media (max-width: 1024px) {
+      main { padding: 3rem 2rem; }
     }
 
-    .agent-card .agent-name {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .agent-card p { font-size: 0.8rem; color: var(--muted); }
-
-    .tag {
-      font-size: 0.68rem;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-
-    .tag-bull { background: rgba(16,185,129,0.15); color: var(--green); }
-    .tag-bear { background: rgba(239,68,68,0.15); color: var(--red); }
-    .tag-mod { background: rgba(245,158,11,0.15); color: var(--yellow); }
-    .tag-sup { background: var(--violet-dim); color: var(--violet-light); }
-
-    /* ── API ── */
-    .api-table { width: 100%; border-collapse: collapse; }
-    .api-table th, .api-table td {
-      text-align: left;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.875rem;
-    }
-    .api-table th { color: var(--dimmer); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .api-table td { color: var(--text); }
-    .api-table tr:last-child td { border-bottom: none; }
-    .api-table code { color: #a78bfa; background: rgba(167,139,250,0.1); padding: 0.1rem 0.35rem; border-radius: 4px; }
-
-    .method {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .method-get { background: rgba(16,185,129,0.15); color: var(--green); }
-    .method-post { background: rgba(245,158,11,0.15); color: var(--yellow); }
-    .method-put { background: rgba(99,102,241,0.15); color: #818cf8; }
-    .method-del { background: rgba(239,68,68,0.15); color: var(--red); }
-
-    /* ── Directory ── */
-    .dir-tree {
-      background: #090915;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      font-size: 0.82rem;
-      line-height: 1.9;
-      overflow-x: auto;
-    }
-
-    .dir-tree .dir { color: var(--violet-light); }
-    .dir-tree .file { color: var(--muted); }
-    .dir-tree .comment { color: var(--dimmer); }
-
-    /* ── Contributing ── */
-    .contrib-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2rem;
-    }
-
-    .contrib-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-    }
-
-    .contrib-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; }
-    .contrib-card p { font-size: 0.85rem; color: var(--muted); }
-
-    /* ── Footer ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem;
-      text-align: center;
-      color: var(--dimmer);
-      font-size: 0.85rem;
-    }
-
-    footer a { color: var(--muted); }
-    footer a:hover { color: #fff; }
-
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .hero { padding: 4rem 1.25rem 2.5rem; }
-      .section { padding: 3rem 1.25rem; }
+    @media (max-width: 768px) {
+      aside { transform: translateX(-100%); transition: transform 0.3s; }
+      aside.open { transform: translateX(0); }
+      main { margin-left: 0; padding: 2rem 1.5rem; }
     }
   </style>
 </head>
-<body>
+<body data-theme="dark">
 
-<!-- Nav -->
-<nav>
-  <div class="nav-brand">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      <path d="M7 10l3 3 2-4 3 3 2-2"/>
+<div class="wave-overlay" id="wave"></div>
+
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 10l3 3 2-4 3 3 2-2"/>
     </svg>
     PortfolioIQ
   </div>
-  <ul class="nav-links">
-    <li><a href="#quickstart">Quickstart</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#agents">Agents</a></li>
-    <li><a href="#api">API</a></li>
-    <li><a href="#structure">Structure</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="https://github.com/GameChaser782/PortfolioIQ" class="nav-cta">GitHub →</a></li>
-  </ul>
-</nav>
+  
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Getting Started</div>
+    <a href="#repository" class="active">Repository</a>
+    <a href="#quickstart">Quickstart</a>
+    <a href="#installation">Installation</a>
+    
+    <div class="nav-group-label">Core Concepts</div>
+    <a href="#core-usage">Core Usage</a>
+    <a href="#built-in-tools">Built-in Tools</a>
+    <a href="#examples">Examples</a>
+    
+    <div class="nav-group-label">Reference</div>
+    <a href="#api-server">API Server</a>
+    <a href="#configuration">Configuration</a>
+  </nav>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="badge">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-    Open Source · MIT License
+  <div class="theme-toggle-container">
+    <button id="theme-toggle">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+      Toggle Dark Mode
+    </button>
   </div>
-  <h1>AI agents that <span>debate</span> your stocks</h1>
-  <p>Multi-agent financial advisor with bull/bear stock debates, live news analysis, and ML predictions. One command to run.</p>
-  <div class="hero-ctas">
-    <a href="#quickstart" class="btn-primary">Get started →</a>
-    <a href="https://github.com/GameChaser782/PortfolioIQ" class="btn-secondary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-      View on GitHub
-    </a>
-  </div>
+</aside>
 
-  <div class="terminal">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div>
-      <div class="dot dot-y"></div>
-      <div class="dot dot-g"></div>
+<main>
+  <section id="repository">
+    <h1>Documentation</h1>
+    <p>PortfolioIQ is a multi-agent financial advisor framework that allows you to analyze stocks, run bull/bear debates, and manage portfolios with ease. The main entry point is <strong>AgentKit</strong>, exported from <code>agent_starter</code>.</p>
+    
+    <h2>Repository</h2>
+    <p>The source code is available on GitHub. You can contribute by opening issues or submitting pull requests.</p>
+    <div class="btn-group">
+      <a href="https://github.com/GameChaser782/PortfolioIQ" class="btn btn-primary">GitHub Repository</a>
+      <a href="https://github.com/GameChaser782/PortfolioIQ/releases" class="btn btn-secondary">Download v0.1.0</a>
     </div>
-    <div class="terminal-body">
-      <div><span class="t-comment"># Install and run in 3 commands</span></div>
-      <div><span class="t-cmd">$ </span>pip install portfolioiq</div>
-      <div><span class="t-cmd">$ </span>portfolioiq setup <span class="t-comment">  # pick your LLM provider</span></div>
-      <div><span class="t-cmd">$ </span>portfolioiq serve</div>
-      <br>
-      <div><span class="t-ok">✓</span> <span class="t-out">PortfolioIQ  http://localhost:8000</span></div>
-      <div><span class="t-ok">✓</span> <span class="t-out">Provider:    ollama/llama3</span></div>
-      <div><span class="t-ok">✓</span> <span class="t-out">API docs:    http://localhost:8000/docs</span></div>
-    </div>
-  </div>
-</div>
+  </section>
 
-<hr class="divider">
+  <section id="quickstart">
+    <h2>Quickstart</h2>
+    <p>Working agent in under a minute. Default flow: clone the repo, install in editable mode, start Ollama, then run the bundled basic example or the CLI.</p>
+    <pre><code>git clone https://github.com/GameChaser782/agent-starter.git
+cd agent-starter
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate   # Windows
 
-<!-- Features -->
-<section class="section" id="features">
-  <div class="section-label">What it does</div>
-  <h2>Everything a financial advisor needs</h2>
-  <p class="section-sub">Eight specialized agents working together — no API key required to start (uses Ollama by default).</p>
+pip install -e .
+cp .env.example .env
+ollama serve
+ollama pull qwen3.5
+python examples/01_basic/run.py</code></pre>
 
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="feature-icon">⚖️</div>
-      <h3>Bull vs Bear Debates</h3>
-      <p>Two AI agents argue opposing cases on any stock with real data, rebuttals, and a moderator verdict with confidence score.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <h3>Full Stock Analysis</h3>
-      <p>Researcher + Analyst + Risk Assessor work together on fundamentals, technicals, and portfolio risk scoring.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📰</div>
-      <h3>News Impact Analysis</h3>
-      <p>Connects global macro events (tariffs, rate decisions, geopolitics) to specific stocks and sectors in your portfolio.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🤖</div>
-      <h3>ML Price Predictions</h3>
-      <p>XGBoost classifier trained on OHLCV + technical indicators predicts 5-day price direction. Train on any ticker.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <h3>Streaming Chat</h3>
-      <p>Ask anything about your portfolio. The supervisor agent routes to the right specialist and streams the response token by token.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌐</div>
-      <h3>Any LLM Provider</h3>
-      <p>Ollama, Gemini, Claude, OpenAI — all treated equally. Pick on first run via setup wizard. No default, no lock-in.</p>
-    </div>
-  </div>
-</section>
+    <h3>What you get</h3>
+    <p>Agent orchestration, persistent memory, built-in tools, CLI commands, and a FastAPI surface.</p>
+  </section>
 
-<hr class="divider">
+  <section id="installation">
+    <h2>Installation</h2>
+    <p>To use PortfolioIQ in your own project, we recommend using a virtual environment.</p>
+    <pre><code>python -m venv .venv
+source .venv/bin/activate
+pip install portfolioiq</code></pre>
+    <p>For ML features (predictions and training), install the optional dependencies:</p>
+    <pre><code>pip install "portfolioiq[ml]"</code></pre>
+  </section>
 
-<!-- Quickstart -->
-<section class="section" id="quickstart">
-  <div class="section-label">Get started</div>
-  <h2>Up and running in minutes</h2>
-  <p class="section-sub">No financial data API key required — yfinance works out of the box. Add Finnhub for faster data.</p>
+  <section id="core-usage">
+    <h2>Core Usage</h2>
+    <p>PortfolioIQ is built around the <strong>AgentKit</strong>. You can initialize the supervisor agent and start interacting with it using the streaming API.</p>
+    <pre><code>from portfolioiq import AgentKit
 
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-content">
-        <h4>Install</h4>
-        <p>Requires Python 3.11+. Install the package and its dependencies.</p>
-        <div class="code-block">pip install portfolioiq</div>
-        <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--dimmer)">For ML support: <code style="font-size:0.82rem">pip install "portfolioiq[ml]"</code></p>
-      </div>
-    </div>
+agent = AgentKit()
+for token in agent.stream("Analyze @AAPL"):
+    print(token, end="", flush=True)</code></pre>
+  </section>
 
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-content">
-        <h4>Run the setup wizard</h4>
-        <p>Pick your LLM provider and enter API keys. Stored in <code style="font-size:0.82rem">.env</code> — never committed.</p>
-        <div class="code-block">portfolioiq setup</div>
-        <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--dimmer)">Providers: Ollama (local, free) · Gemini · Claude · OpenAI</p>
-      </div>
-    </div>
+  <section id="built-in-tools">
+    <h2>Built-in Tools</h2>
+    <p>Our agents have access to a variety of financial tools:</p>
+    <ul>
+      <li><strong>Researcher:</strong> Fetches historical prices and fundamentals.</li>
+      <li><strong>News Search:</strong> Real-time news analysis using Tavily.</li>
+      <li><strong>Indicators:</strong> Calculates RSI, MACD, and Bollinger Bands.</li>
+      <li><strong>ML Predictor:</strong> XGBoost-based price direction prediction.</li>
+    </ul>
+  </section>
 
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <h4>Start the server</h4>
-        <p>Starts FastAPI backend and serves the React frontend at localhost:8000.</p>
-        <div class="code-block">portfolioiq serve</div>
-      </div>
-    </div>
+  <section id="examples">
+    <h2>Examples</h2>
+    <p>Check the <code>examples/</code> directory in the repository for common use cases:</p>
+    <ul>
+      <li><code>01_basic/</code>: Simple chat agent.</li>
+      <li><code>02_debate/</code>: Running a multi-round bull vs bear debate.</li>
+      <li><code>03_portfolio/</code>: Full portfolio risk assessment.</li>
+    </ul>
+  </section>
 
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-content">
-        <h4>Run a stock debate (optional CLI)</h4>
-        <p>Runs a 3-round bull vs bear debate directly in your terminal.</p>
-        <div class="code-block">portfolioiq debate AAPL</div>
-      </div>
-    </div>
+  <section id="api-server">
+    <h2>API Server</h2>
+    <p>PortfolioIQ includes a built-in FastAPI server to power your web applications.</p>
+    <pre><code>portfolioiq serve --port 8000</code></pre>
+    <p>The following endpoints are available:</p>
+    <ul>
+      <li><code>GET /api/health</code>: Server status.</li>
+      <li><code>POST /api/stream</code>: Streaming chat endpoint.</li>
+      <li><code>GET /api/debate/{ticker}</code>: Run a stock debate.</li>
+      <li><code>GET /api/analyze/{ticker}</code>: Full financial analysis.</li>
+    </ul>
+  </section>
 
-    <div class="step">
-      <div class="step-num">5</div>
-      <div class="step-content">
-        <h4>Train ML models (optional)</h4>
-        <p>Train a price direction classifier on any ticker, then predict.</p>
-        <div class="code-block">portfolioiq train --ticker AAPL --days 365
-portfolioiq predict AAPL</div>
-      </div>
-    </div>
-  </div>
-</section>
+  <section id="configuration">
+    <h2>Configuration</h2>
+    <p>Configure your environment variables in a <code>.env</code> file. The setup wizard can help you with this:</p>
+    <pre><code>source .venv/bin/activate
+portfolioiq setup</code></pre>
+    <p>Key configuration options:</p>
+    <ul>
+      <li><code>MODEL_PROVIDER</code>: ollama, openai, anthropic, or google.</li>
+      <li><code>MODEL_NAME</code>: The specific LLM to use (e.g., <code>qwen3.5</code>, <code>gpt-4o</code>).</li>
+      <li><code>TAVILY_API_KEY</code>: Required for live news search.</li>
+    </ul>
+  </section>
 
-<hr class="divider">
+  <footer style="margin-top: 5rem; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+    <p>&copy; 2026 PortfolioIQ. Version 0.1.0. Main entry point: AgentKit.</p>
+  </footer>
+</main>
 
-<!-- Agents -->
-<section class="section" id="agents">
-  <div class="section-label">Architecture</div>
-  <h2>Eight specialized agents</h2>
-  <p class="section-sub">Supervisor routes queries. Each sub-agent has a YAML config and a markdown persona file in <code>agents/</code>.</p>
+<script>
+  // Theme Toggle with Wave Animation
+  const toggle = document.getElementById('theme-toggle');
+  const body = document.body;
+  const wave = document.getElementById('wave');
 
-  <div class="agents-grid">
-    <div class="agent-card">
-      <div class="agent-name"><span class="tag tag-sup">supervisor</span></div>
-      <p>Routes user queries to the right specialist. Synthesizes multi-agent responses into a single coherent answer.</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name">🔍 Researcher</div>
-      <p>Gathers raw financial data — prices, fundamentals, earnings, news — using the tool registry.</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name">📈 Analyst</div>
-      <p>Technical and fundamental analysis. Calculates indicators, interprets patterns, and scores the stock.</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name"><span class="tag tag-bull">bull</span> Debater</div>
-      <p>Argues the bullish case with specific evidence: P/E ratios, revenue growth, momentum signals, positive news catalysts.</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name"><span class="tag tag-bear">bear</span> Debater</div>
-      <p>Argues the bearish case: debt levels, insider selling, competitive threats, macro headwinds.</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name"><span class="tag tag-mod">mod</span> Moderator</div>
-      <p>Judges the debate, scores argument quality, and outputs a structured verdict with confidence score (0–100).</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name">📰 News Analyst</div>
-      <p>Maps global news events to stock and sector impact. Answers "how do tariffs affect my portfolio?"</p>
-    </div>
-    <div class="agent-card">
-      <div class="agent-name">⚠️ Risk Assessor</div>
-      <p>Portfolio-level risk: concentration, volatility, drawdown, correlation analysis.</p>
-    </div>
-  </div>
-</section>
+  toggle.addEventListener('click', (e) => {
+    // Wave animation logic
+    const rect = toggle.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    
+    wave.style.left = `${x - 10}px`;
+    wave.style.top = `${y - 10}px`;
+    
+    wave.classList.remove('wave-animate');
+    void wave.offsetWidth; // trigger reflow
+    wave.classList.add('wave-animate');
 
-<hr class="divider">
+    // Toggle theme after a small delay to sync with wave
+    setTimeout(() => {
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }, 150);
+  });
 
-<!-- API Reference -->
-<section class="section" id="api">
-  <div class="section-label">API Reference</div>
-  <h2>REST API</h2>
-  <p class="section-sub">Full OpenAPI docs available at <code>/docs</code> when the server is running.</p>
+  // Persistent Theme
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    body.setAttribute('data-theme', savedTheme);
+  }
 
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-    <table class="api-table">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Endpoint</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/health</code></td>
-          <td>Server health + active provider/model</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/search?q=</code></td>
-          <td>Symbol autocomplete (no API key needed)</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/quote/{ticker}</code></td>
-          <td>Current price, change, currency</td>
-        </tr>
-        <tr>
-          <td><span class="method method-post">POST</span></td>
-          <td><code>/api/stream</code></td>
-          <td>SSE streaming chat (send message, get token stream)</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/debate/{ticker}</code></td>
-          <td>Run bull/bear debate. <code>?rounds=1-5</code></td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/analyze/{ticker}</code></td>
-          <td>Full analysis: fundamentals + technicals + score</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/news/{ticker}</code></td>
-          <td>News impact analysis</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/sessions</code></td>
-          <td>List saved portfolio sessions</td>
-        </tr>
-        <tr>
-          <td><span class="method method-post">POST</span></td>
-          <td><code>/api/sessions</code></td>
-          <td>Create a new session</td>
-        </tr>
-        <tr>
-          <td><span class="method method-get">GET</span></td>
-          <td><code>/api/sessions/{id}</code></td>
-          <td>Load a session</td>
-        </tr>
-        <tr>
-          <td><span class="method method-put">PUT</span></td>
-          <td><code>/api/sessions/{id}</code></td>
-          <td>Save/update a session</td>
-        </tr>
-        <tr>
-          <td><span class="method method-del">DEL</span></td>
-          <td><code>/api/sessions/{id}</code></td>
-          <td>Delete a session</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+  // Active Nav Link on Scroll
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('.sidebar-nav a');
 
-<hr class="divider">
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.clientHeight;
+      if (pageYOffset >= sectionTop - 100) {
+        current = section.getAttribute('id');
+      }
+    });
 
-<!-- Directory Structure -->
-<section class="section" id="structure">
-  <div class="section-label">Codebase</div>
-  <h2>Directory structure</h2>
-  <p class="section-sub">The project is split into a Python backend package and a Next.js frontend.</p>
-
-  <div class="dir-tree">
-<pre><span class="dir">PortfolioIQ/</span>
-├── <span class="file">pyproject.toml</span>          <span class="comment"># pip installable, CLI entry point</span>
-├── <span class="file">Makefile</span>               <span class="comment"># make run / make test / make train</span>
-├── <span class="file">.env.example</span>           <span class="comment"># copy to .env, fill in API keys</span>
-│
-├── <span class="dir">portfolioiq/</span>           <span class="comment"># main Python package</span>
-│   ├── <span class="file">__main__.py</span>         <span class="comment"># CLI: setup / serve / chat / debate / train / predict</span>
-│   ├── <span class="file">config.py</span>           <span class="comment"># YAML + .env config loader</span>
-│   ├── <span class="file">agent.py</span>            <span class="comment"># PortfolioAgent class (supervisor)</span>
-│   ├── <span class="file">server.py</span>           <span class="comment"># FastAPI app factory + all endpoints</span>
-│   │
-│   ├── <span class="dir">graphs/</span>             <span class="comment"># LangGraph StateGraphs</span>
-│   │   ├── <span class="file">supervisor.py</span>
-│   │   ├── <span class="file">debate.py</span>       <span class="comment"># bull/bear/moderator loop</span>
-│   │   ├── <span class="file">analysis.py</span>
-│   │   └── <span class="file">news.py</span>
-│   │
-│   ├── <span class="dir">tools/</span>              <span class="comment"># @tool decorated financial tools</span>
-│   │   ├── <span class="file">stock_lookup.py</span>
-│   │   ├── <span class="file">get_fundamentals.py</span>
-│   │   ├── <span class="file">get_earnings.py</span>
-│   │   ├── <span class="file">get_history.py</span>
-│   │   ├── <span class="file">calculate_indicators.py</span>
-│   │   └── <span class="file">news_search.py</span>
-│   │
-│   ├── <span class="dir">data/</span>
-│   │   └── <span class="file">provider.py</span>     <span class="comment"># Finnhub (fast) + yfinance (fallback)</span>
-│   │
-│   ├── <span class="dir">memory/</span>
-│   │   └── <span class="file">long_term.py</span>    <span class="comment"># SQLite long-term memory</span>
-│   │
-│   └── <span class="dir">ml/</span>                 <span class="comment"># XGBoost ML pipeline</span>
-│       ├── <span class="file">features.py</span>
-│       ├── <span class="file">train.py</span>
-│       └── <span class="file">predict.py</span>
-│
-├── <span class="dir">agents/</span>                <span class="comment"># per-agent YAML config + persona markdown</span>
-│   ├── <span class="file">supervisor.yaml</span> + <span class="file">supervisor_persona.md</span>
-│   ├── <span class="file">bull_debater.yaml</span> + <span class="file">bear_debater.yaml</span>
-│   └── <span class="file">…</span>
-│
-└── <span class="dir">frontend/</span>              <span class="comment"># Next.js App Router (TypeScript + Tailwind)</span>
-    ├── <span class="file">package.json</span>
-    ├── <span class="dir">app/</span>
-    │   └── <span class="file">page.tsx</span>        <span class="comment"># main app shell</span>
-    └── <span class="dir">components/</span>
-        ├── <span class="file">ChatPanel.tsx</span>
-        ├── <span class="file">DebatePanel.tsx</span>
-        ├── <span class="file">PortfolioPanel.tsx</span>
-        └── <span class="file">SessionManager.tsx</span></pre>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- Contributing -->
-<section class="section" id="contributing">
-  <div class="section-label">Open source</div>
-  <h2>Contributing</h2>
-  <p class="section-sub">The codebase is designed to be easy to extend. Each agent, tool, and graph is an isolated module.</p>
-
-  <div class="contrib-grid">
-    <div class="contrib-card">
-      <h3>Adding a new agent</h3>
-      <p>Create <code>agents/my_agent.yaml</code> and <code>my_agent_persona.md</code>, implement the node function in <code>portfolioiq/graphs/</code>, and wire it into the supervisor.</p>
-    </div>
-    <div class="contrib-card">
-      <h3>Adding a new tool</h3>
-      <p>Add a file in <code>portfolioiq/tools/</code> with a <code>@tool</code> decorated function. Import it in the agent's YAML tool list. The registry picks it up automatically.</p>
-    </div>
-    <div class="contrib-card">
-      <h3>Adding a data provider</h3>
-      <p>Extend <code>portfolioiq/data/provider.py</code>. The <code>DataProvider</code> class has a clean interface: <code>get_quote()</code>, <code>get_fundamentals()</code>, <code>get_candles()</code>, etc.</p>
-    </div>
-  </div>
-
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-content">
-        <h4>Fork and clone</h4>
-        <div class="code-block">git clone https://github.com/GameChaser782/PortfolioIQ
-cd PortfolioIQ
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[all]"</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-content">
-        <h4>Set up environment</h4>
-        <div class="code-block">cp .env.example .env
-# Edit .env with your LLM provider key
-portfolioiq setup</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <h4>Run tests and submit a PR</h4>
-        <div class="code-block">pytest tests/
-# Open a PR — describe what agent/tool/graph you added</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <p>
-    PortfolioIQ is open source under the MIT license.
-    <a href="https://github.com/GameChaser782/PortfolioIQ">GitHub</a> ·
-    <a href="https://github.com/GameChaser782/PortfolioIQ/issues">Issues</a> ·
-    <a href="https://github.com/GameChaser782/PortfolioIQ/blob/main/README.md">README</a>
-  </p>
-  <p style="margin-top:0.5rem; font-size:0.78rem;">Not financial advice. For educational and research purposes only.</p>
-</footer>
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href').slice(1) === current) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>
 
 </body>
 </html>
